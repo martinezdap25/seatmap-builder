@@ -15,6 +15,7 @@ export interface SeatmapState {
     backgroundColor: string;
     zoom: number;
   };
+  clipboard: Shape | null;
 }
 
 export const initialState: SeatmapState = {
@@ -26,6 +27,7 @@ export const initialState: SeatmapState = {
     backgroundColor: "#ffffff",
     zoom: 1, // 1 = 100%
   },
+  clipboard: null,
 };
 
 export type Action =
@@ -34,7 +36,9 @@ export type Action =
   | { type: "REDO" }
   | { type: "SET_FLOORS"; payload: Floor[] }
   | { type: "SET_CANVAS_SETTINGS"; payload: { backgroundColor: string; zoom: number } }
-  | { type: "SET_ZOOM"; payload: number };
+  | { type: "SET_ZOOM"; payload: number }
+  | { type: "COPY_SELECTION" }
+  | { type: "PASTE_FROM_CLIPBOARD" };
 
 // --- 2. Crear el Reducer ---
 
@@ -74,6 +78,33 @@ export const seatmapReducer = produce((draft: SeatmapState, action: Action) => {
     }
     case "SET_ZOOM": {
       draft.canvasSettings.zoom = action.payload;
+      break;
+    }
+    case "COPY_SELECTION": {
+      const selectedShape = draft.shapes.find(s => s.selected);
+      if (selectedShape) {
+        draft.clipboard = { ...selectedShape, selected: false };
+      }
+      break;
+    }
+    case "PASTE_FROM_CLIPBOARD": {
+      if (draft.clipboard) {
+        const newShape: Shape = {
+          ...draft.clipboard,
+          id: crypto.randomUUID(),
+          x: draft.clipboard.x + 20, // Offset para que no se pegue encima
+          y: draft.clipboard.y + 20,
+          selected: true, // La nueva figura queda seleccionada
+        };
+        // Deseleccionar todas las demás
+        draft.shapes.forEach(s => s.selected = false);
+        draft.shapes.push(newShape);
+        // Actualizar historial
+        const newHistory = draft.history.slice(0, draft.historyIndex + 1);
+        newHistory.push(draft.shapes);
+        draft.history = newHistory;
+        draft.historyIndex = newHistory.length - 1;
+      }
       break;
     }
   }

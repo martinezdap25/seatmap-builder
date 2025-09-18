@@ -53,6 +53,9 @@ export const useSeatmapStore = () => {
     [dispatch]
   );
 
+  const copySelection = useCallback(() => dispatch({ type: "COPY_SELECTION" }), [dispatch]);
+  const pasteFromClipboard = useCallback(() => dispatch({ type: "PASTE_FROM_CLIPBOARD" }), [dispatch]);
+
   return {
     // Estado
     shapes: state.shapes,
@@ -65,6 +68,8 @@ export const useSeatmapStore = () => {
     setFloors,
     setCanvasSettings,
     setZoom,
+    copySelection,
+    pasteFromClipboard,
     // Para la UI
     canUndo: state.historyIndex > 0,
     canRedo: state.historyIndex < state.history.length - 1,

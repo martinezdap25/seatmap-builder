@@ -19,6 +19,8 @@ function Editor() {
     setFloors,
     setCanvasSettings,
     setZoom,
+    copySelection,
+    pasteFromClipboard,
   } = useSeatmapStore();
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -127,12 +129,22 @@ function Editor() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "z") undo();
-      if (e.ctrlKey && e.key === "y") redo();
+      // Ignorar atajos si se está escribiendo en un input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey) { // metaKey es para Command en Mac
+        if (e.key === 'z') undo();
+        if (e.key === 'y') redo();
+        if (e.key === 'c') copySelection();
+        if (e.key === 'v') pasteFromClipboard();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, copySelection, pasteFromClipboard]);
 
   // Efecto para reasignar figuras si su piso es eliminado
   useEffect(() => {

@@ -41,6 +41,8 @@ function Editor() {
         height: 100,
         rotation: 0,
         label: "",
+        flippedX: false,
+        flippedY: false,
         textOptions: {
           align: "center",
           isBold: false,
@@ -127,6 +129,18 @@ function Editor() {
     );
   };
 
+  const handleFlip = (direction: 'horizontal' | 'vertical') => {
+    setShapes(prev =>
+      prev.map(s => {
+        if (!s.selected) return s;
+        if (direction === 'horizontal') {
+          return { ...s, flippedX: !s.flippedX };
+        }
+        return { ...s, flippedY: !s.flippedY };
+      })
+    );
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignorar atajos si se está escribiendo en un input
@@ -196,6 +210,8 @@ function Editor() {
         onBatchLabel={handleBatchLabel}
         onAlign={handleAlign}
         canAlign={selectedShapes.length > 0}
+        onFlip={handleFlip}
+        canFlip={selectedShapes.length > 0}
         onExport={handleExport}
         onImport={handleImport}
         onDelete={selectedShapes.length > 0 ? () => handleDelete() : undefined}
@@ -222,6 +238,8 @@ function Editor() {
           canvasSettings={canvasSettings}
           floors={floors}
           setFloors={setFloors}
+          onAlign={handleAlign}
+          onFlip={handleFlip}
           onCanvasSettingsChange={setCanvasSettings}
         />
       </div>

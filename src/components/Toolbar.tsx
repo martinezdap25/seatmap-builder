@@ -14,6 +14,8 @@ import {
   AlignVerticalJustifyStart,
   AlignVerticalJustifyCenter,
   AlignVerticalJustifyEnd,
+  FlipHorizontal,
+  FlipVertical,
   ZoomIn,
   ZoomOut,
   Search,
@@ -27,6 +29,8 @@ interface ToolbarProps {
     alignment: "left" | "center-h" | "right" | "top" | "center-v" | "bottom"
   ) => void;
   canAlign: boolean;
+  onFlip: (direction: 'horizontal' | 'vertical') => void;
+  canFlip: boolean;
   onExport: () => void;
   onImport: (file: File) => void;
   onDelete?: () => void; // Hacemos la prop opcional
@@ -42,6 +46,8 @@ export default function Toolbar({
   onBatchLabel,
   onAlign,
   canAlign,
+  onFlip,
+  canFlip,
   onExport,
   onImport,
   onDelete,
@@ -89,6 +95,17 @@ export default function Toolbar({
         </Button>
         <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("bottom")} title="Alinear Abajo">
           <AlignVerticalJustifyEnd size={16} />
+        </Button>
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-2"></div>
+
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="sm" disabled={!canFlip} onClick={() => onFlip('horizontal')} title="Espejar Horizontalmente">
+          <FlipHorizontal size={16} />
+        </Button>
+        <Button variant="outline" size="sm" disabled={!canFlip} onClick={() => onFlip('vertical')} title="Espejar Verticalmente">
+          <FlipVertical size={16} />
         </Button>
       </div>
 

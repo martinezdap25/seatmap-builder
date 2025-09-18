@@ -1,7 +1,7 @@
 "use client";
 
 import { Shape, TextOptions, Floor } from "@/types/types";
-import { AlignLeft, AlignCenter, AlignRight, Bold, X } from "lucide-react";
+import { AlignLeft, AlignCenter, AlignRight, Bold, X, FlipHorizontal, FlipVertical, AlignHorizontalJustifyStart, AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd } from "lucide-react";
 import React, { useCallback } from "react";
 
 interface CanvasSettings {
@@ -16,6 +16,10 @@ interface PropertiesPanelProps {
   onCanvasSettingsChange: (settings: CanvasSettings) => void;
   floors: Floor[];
   setFloors: React.Dispatch<React.SetStateAction<Floor[]>>;
+  onAlign: (
+    alignment: "left" | "center-h" | "right" | "top" | "center-v" | "bottom"
+  ) => void;
+  onFlip: (direction: 'horizontal' | 'vertical') => void;
 }
 
 function PropertyInput({ label, value, onChange }: { label: string; value: number; onChange: (newValue: number) => void; }) {
@@ -77,6 +81,8 @@ export default function PropertiesPanel({
   onCanvasSettingsChange,
   floors,
   setFloors,
+  onAlign,
+  onFlip,
 }: PropertiesPanelProps) {
 
   const handleAddFloor = () => {
@@ -167,6 +173,38 @@ export default function PropertiesPanel({
                 className="w-8 h-7 p-0.5 border border-gray-300 rounded-md"
               />
             </div>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-200 my-4"></div>
+
+        <div>
+          <h4 className="font-medium text-gray-700 text-sm mb-2">Alinear</h4>
+          <div className="grid grid-cols-3 gap-1">
+            <button onClick={() => onAlign('left')} className="p-2 flex justify-center rounded hover:bg-gray-200" title="Alinear a la Izquierda"><AlignHorizontalJustifyStart size={16} /></button>
+            <button onClick={() => onAlign('center-h')} className="p-2 flex justify-center rounded hover:bg-gray-200" title="Centrar Horizontalmente"><AlignHorizontalJustifyCenter size={16} /></button>
+            <button onClick={() => onAlign('right')} className="p-2 flex justify-center rounded hover:bg-gray-200" title="Alinear a la Derecha"><AlignHorizontalJustifyEnd size={16} /></button>
+            <button onClick={() => onAlign('top')} className="p-2 flex justify-center rounded hover:bg-gray-200" title="Alinear Arriba"><AlignVerticalJustifyStart size={16} /></button>
+            <button onClick={() => onAlign('center-v')} className="p-2 flex justify-center rounded hover:bg-gray-200" title="Centrar Verticalmente"><AlignVerticalJustifyCenter size={16} /></button>
+            <button onClick={() => onAlign('bottom')} className="p-2 flex justify-center rounded hover:bg-gray-200" title="Alinear Abajo"><AlignVerticalJustifyEnd size={16} /></button>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-gray-700 text-sm mb-2">Espejar</h4>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onFlip('horizontal')}
+              className="flex-1 flex items-center justify-center gap-2 p-2 border rounded-md text-sm hover:bg-gray-200"
+            >
+              <FlipHorizontal size={16} /> Horizontal
+            </button>
+            <button
+              onClick={() => onFlip('vertical')}
+              className="flex-1 flex items-center justify-center gap-2 p-2 border rounded-md text-sm hover:bg-gray-200"
+            >
+              <FlipVertical size={16} /> Vertical
+            </button>
           </div>
         </div>
 

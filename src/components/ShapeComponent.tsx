@@ -136,7 +136,11 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
         top: shape.y,
         width: shape.width ?? 0,
         height: shape.height ?? 0,
-        transform: `rotate(${shape.rotation || 0}deg)`,
+        transform: [
+          `rotate(${shape.rotation || 0}deg)`,
+          shape.flippedX ? 'scaleX(-1)' : '',
+          shape.flippedY ? 'scaleY(-1)' : '',
+        ].join(' '),
       }}
     >
       {/* Este div interno es el que se ve, se selecciona y se arrastra */}
@@ -155,6 +159,7 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
               'center',
             color: shape.textOptions?.color || '#333333',
             fontWeight: shape.textOptions?.isBold ? 'bold' : 'normal',
+            transform: `${shape.flippedX ? 'scaleX(-1)' : ''} ${shape.flippedY ? 'scaleY(-1)' : ''}`,
           }}
         >
           {shape.label}

@@ -26,6 +26,8 @@ export type Shape = {
   height?: number; // Opcional
   rotation?: number; // en grados
   vertices?: { x: number; y: number }[]; // Para polígonos
+  flippedX?: boolean;
+  flippedY?: boolean;
   label?: string; // Para el texto dentro de la figura
   textOptions?: TextOptions;
   seats: Seat[];

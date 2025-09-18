@@ -1,7 +1,8 @@
 "use client";
 
-import { Shape, TextOptions } from "@/types/types";
+import { Shape, TextOptions, Floor } from "@/types/types";
 import { AlignLeft, AlignCenter, AlignRight, Bold } from "lucide-react";
+import React, { useCallback } from "react";
 
 interface CanvasSettings {
   backgroundColor: string;
@@ -12,6 +13,8 @@ interface PropertiesPanelProps {
   onUpdate: (updatedShape: Shape) => void;
   canvasSettings: CanvasSettings;
   onCanvasSettingsChange: (settings: CanvasSettings) => void;
+  floors: Floor[];
+  setFloors: React.Dispatch<React.SetStateAction<Floor[]>>;
 }
 
 function PropertyInput({ label, value, onChange }: { label: string; value: number; onChange: (newValue: number) => void; }) {
@@ -28,17 +31,65 @@ function PropertyInput({ label, value, onChange }: { label: string; value: numbe
   );
 }
 
+const FloorManager = React.memo(function FloorManager({
+  floors,
+  handleUpdateFloor,
+  handleAddFloor,
+}: {
+  floors: Floor[];
+  handleUpdateFloor: (id: string, name: string, color: string) => void;
+  handleAddFloor: () => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <h4 className="font-medium text-gray-700 text-sm mt-4">Pisos</h4>
+      {floors.map((floor) => (
+        <div key={floor.id} className="flex items-center gap-2">
+          <input type="color" value={floor.color} onChange={(e) => handleUpdateFloor(floor.id, floor.name, e.target.value)} className="w-8 h-7 p-0.5 border border-gray-300 rounded-md" />
+          <input
+            type="text"
+            value={floor.name}
+            onChange={(e) => handleUpdateFloor(floor.id, e.target.value, floor.color)}
+            className="w-full p-1 border border-gray-300 rounded-md text-sm"
+          />
+        </div>
+      ))}
+      <button onClick={handleAddFloor} className="w-full text-sm text-blue-600 hover:underline mt-2">
+        + Agregar piso
+      </button>
+    </div>
+  );
+});
+
 export default function PropertiesPanel({
   selectedShape,
   onUpdate,
   canvasSettings,
   onCanvasSettingsChange,
+  floors,
+  setFloors,
 }: PropertiesPanelProps) {
+
+  const handleAddFloor = () => {
+    const newFloor: Floor = {
+      id: crypto.randomUUID(),
+      name: `Piso ${floors.length + 1}`,
+      color: '#cccccc'
+    };
+    setFloors([...floors, newFloor]);
+  };
+
+  const handleUpdateFloor = useCallback((floorId: string, newName: string, newColor: string) => {
+    setFloors((prevFloors: Floor[]) => 
+      prevFloors.map(f => f.id === floorId ? { ...f, name: newName, color: newColor } : f)
+    );
+  }, [setFloors]);
+
   if (!selectedShape) {
     return (
       <div className="w-64 p-4 border-l border-gray-200 bg-gray-50">
         <h3 className="font-semibold text-gray-800 mb-4">Propiedades del Canvas</h3>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <label className="text-sm text-gray-600">Fondo</label>
           <input
             type="color"
@@ -47,6 +98,12 @@ export default function PropertiesPanel({
             className="w-10 h-8 p-1 border border-gray-300 rounded-md"
           />
         </div>
+        <div className="border-t border-gray-200 my-4"></div>
+        <FloorManager
+          floors={floors}
+          handleUpdateFloor={handleUpdateFloor}
+          handleAddFloor={handleAddFloor}
+        />
       </div>
     );
   }
@@ -63,6 +120,16 @@ export default function PropertiesPanel({
     <div className="w-64 p-4 border-l border-gray-200 bg-gray-50">
       <h3 className="font-semibold text-gray-800 mb-4">Propiedades</h3>
       <div className="space-y-3">
+        <div>
+          <label className="text-sm text-gray-600">Piso</label>
+          <select
+            value={selectedShape.floorId || ''}
+            onChange={(e) => handleUpdate('floorId', e.target.value)}
+            className="w-full mt-1 p-1.5 border border-gray-300 rounded-md text-sm"
+          >
+            {floors.map(floor => <option key={floor.id} value={floor.id}>{floor.name}</option>)}
+          </select>
+        </div>
         <div>
           <label className="text-sm text-gray-600">Etiqueta</label>
           <input

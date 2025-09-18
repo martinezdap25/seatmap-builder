@@ -1,6 +1,6 @@
 "use client";
 
-import { Shape } from "@/types/types";
+import { Shape, Floor } from "@/types/types";
 import { RotateCw } from "lucide-react";
 import VertexHandle from "./VertexHandle";
 import ResizeHandle from "./ResizeHandle";
@@ -15,9 +15,10 @@ interface ShapeComponentProps {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   onDelete: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
+  floors: Floor[];
 }
 
-export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, onDelete, onDeleteVertex, }: ShapeComponentProps) {
+export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, onDelete, onDeleteVertex, floors }: ShapeComponentProps) {
   const { handleDrag, handleResize, handleRotate } = useInteraction();
   const {
     selectedVertexIndex,
@@ -96,6 +97,9 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
       })
     : [];
 
+  const floorColor = floors.find(f => f.id === shape.floorId)?.color || '#cccccc';
+  const backgroundColor = `rgba(${parseInt(floorColor.slice(1, 3), 16)}, ${parseInt(floorColor.slice(3, 5), 16)}, ${parseInt(floorColor.slice(5, 7), 16)}, 0.4)`;
+
   return (
     <div
       // Este div ahora es solo un contenedor para posicionamiento y los manejadores
@@ -130,11 +134,11 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
         </div>
 
         {shape.type === 'rect' && !shape.editingVertices && (
-          <div className="w-full h-full border border-gray-400" style={{ backgroundColor: "rgba(0, 0, 255, 0.1)" }} />
+          <div className="w-full h-full border border-gray-400" style={{ backgroundColor }} />
         )}
         {(shape.type === 'polygon' || shape.editingVertices) && shape.vertices && (
           <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
-            <path d={polygonPath} fill="rgba(0, 0, 255, 0.1)" stroke="rgb(59, 130, 246)" strokeWidth="2" />
+            <path d={polygonPath} fill={backgroundColor} stroke={floorColor} strokeWidth="2" />
             {/* Líneas invisibles para capturar clics y añadir vértices */}
             {segmentPaths.map((path, index) => (
               <path

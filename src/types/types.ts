@@ -10,10 +10,16 @@ export type TextOptions = {
   isBold?: boolean;
 };
 
+export type Floor = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 export type Shape = {
   id: string;
   type: "rect" | "polygon";
-  category: string;
+  floorId?: string; // Vincula la figura a un piso
   x: number;
   y: number;
   width?: number; // Opcional, ya que los polígonos no lo usan directamente

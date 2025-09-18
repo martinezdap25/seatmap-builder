@@ -1,6 +1,6 @@
 "use client";
 
-import { Shape } from "@/types/types";
+import { Shape, Floor } from "@/types/types";
 import { useRef } from "react";
 import ShapeComponent from "./ShapeComponent";
 
@@ -15,9 +15,10 @@ interface CanvasProps {
   onSelectShape: (shapeId: string, isShiftPressed: boolean) => void;
   onDeleteShape: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
+  floors: Floor[];
 }
 
-export default function Canvas({ shapes, settings, onUpdateShape, onSelectShape, onDeleteShape, onDeleteVertex, }: CanvasProps) {
+export default function Canvas({ shapes, settings, onUpdateShape, onSelectShape, onDeleteShape, onDeleteVertex, floors }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -42,6 +43,7 @@ export default function Canvas({ shapes, settings, onUpdateShape, onSelectShape,
           onSelect={onSelectShape}
           onDelete={onDeleteShape}
           onDeleteVertex={onDeleteVertex}
+          floors={floors}
         />
       ))}
     </div>

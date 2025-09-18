@@ -1,19 +1,30 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, SetStateAction } from "react";
 import Toolbar from "@/components/Toolbar";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
-import { Shape } from "@/types/types";
+import { Shape, Floor } from "@/types/types";
 
 export default function HomePage() {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [history, setHistory] = useState<Shape[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [floors, _setFloors] = useState<Floor[]>([
+    { id: 'default', name: 'Piso por defecto', color: '#87CEEB' } // Un piso inicial
+  ]);
 
-  const [canvasSettings, setCanvasSettings] = useState({
+  const [canvasSettings, _setCanvasSettings] = useState({
     backgroundColor: "#ffffff",
   });
+
+  // Envolvemos los setters en useCallback para estabilizarlos
+  const setFloors = useCallback((newFloors: SetStateAction<Floor[]>) => { // SetStateAction<Floor[]> es lo mismo que Floor[] | ((prevState: Floor[]) => Floor[])
+    _setFloors(newFloors);
+  }, []);
+  const setCanvasSettings = useCallback((newSettings: SetStateAction<{ backgroundColor: string; }>) => {
+    _setCanvasSettings(newSettings);
+  }, []);
 
   const updateShapesAndHistory = (newShapes: Shape[] | ((prev: Shape[]) => Shape[])) => {
     const resolvedShapes = typeof newShapes === 'function' ? newShapes(shapes) : newShapes;
@@ -35,7 +46,7 @@ export default function HomePage() {
       {
         id: crypto.randomUUID(),
         type: "rect",
-        category: "sin-categoría",
+        floorId: floors[0]?.id, // Asignar el primer piso por defecto
         x: 100,
         y: 100,
         width: 150,
@@ -191,12 +202,15 @@ export default function HomePage() {
             onSelectShape={handleSelectShape}
             onDeleteShape={handleDelete}
             onDeleteVertex={handleDeleteVertex}
+            floors={floors}
           />
         </div>
         <PropertiesPanel
           selectedShape={selectedShape}
           onUpdate={handleUpdateShape}
           canvasSettings={canvasSettings}
+          floors={floors}
+          setFloors={setFloors}
           onCanvasSettingsChange={setCanvasSettings}
         />
       </div>

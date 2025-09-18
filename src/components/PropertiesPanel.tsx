@@ -1,7 +1,7 @@
 "use client";
 
 import { Shape, TextOptions, Floor } from "@/types/types";
-import { AlignLeft, AlignCenter, AlignRight, Bold } from "lucide-react";
+import { AlignLeft, AlignCenter, AlignRight, Bold, X } from "lucide-react";
 import React, { useCallback } from "react";
 
 interface CanvasSettings {
@@ -36,10 +36,12 @@ const FloorManager = React.memo(function FloorManager({
   floors,
   handleUpdateFloor,
   handleAddFloor,
+  handleDeleteFloor,
 }: {
   floors: Floor[];
   handleUpdateFloor: (id: string, name: string, color: string) => void;
   handleAddFloor: () => void;
+  handleDeleteFloor: (id: string) => void;
 }) {
   return (
     <div className="space-y-2">
@@ -53,6 +55,12 @@ const FloorManager = React.memo(function FloorManager({
             onChange={(e) => handleUpdateFloor(floor.id, e.target.value, floor.color)}
             className="w-full p-1 border border-gray-300 rounded-md text-sm"
           />
+          <button
+            onClick={() => handleDeleteFloor(floor.id)}
+            className="p-1 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={floors.length <= 1} // No permitir eliminar el último piso
+            title="Eliminar piso"
+          ><X size={16} /></button>
         </div>
       ))}
       <button onClick={handleAddFloor} className="w-full text-sm text-blue-600 hover:underline mt-2">
@@ -80,6 +88,10 @@ export default function PropertiesPanel({
     setFloors([...floors, newFloor]);
   };
 
+  const handleDeleteFloor = (floorId: string) => {
+    setFloors((prevFloors) => prevFloors.filter((f) => f.id !== floorId));
+  };
+
   const handleUpdateFloor = useCallback((floorId: string, newName: string, newColor: string) => {
     setFloors((prevFloors: Floor[]) => 
       prevFloors.map(f => f.id === floorId ? { ...f, name: newName, color: newColor } : f)
@@ -104,6 +116,7 @@ export default function PropertiesPanel({
           floors={floors}
           handleUpdateFloor={handleUpdateFloor}
           handleAddFloor={handleAddFloor}
+          handleDeleteFloor={handleDeleteFloor}
         />
       </div>
     );

@@ -134,6 +134,21 @@ function Editor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo, redo]);
 
+  // Efecto para reasignar figuras si su piso es eliminado
+  useEffect(() => {
+    const floorIds = new Set(floors.map(f => f.id));
+    const defaultFloorId = floors[0]?.id;
+
+    // Comprobar si alguna figura necesita ser actualizada
+    const needsUpdate = shapes.some(s => s.floorId && !floorIds.has(s.floorId));
+
+    if (needsUpdate && defaultFloorId) {
+      setShapes(prevShapes => prevShapes.map(s => 
+        s.floorId && !floorIds.has(s.floorId) ? { ...s, floorId: defaultFloorId } : s
+      ));
+    }
+  }, [floors, shapes, setShapes]);
+
   const handleZoom = useCallback((direction: 'in' | 'out' | 'reset') => {
     const currentZoom = canvasSettings.zoom;
     const ZOOM_STEP = 0.1;

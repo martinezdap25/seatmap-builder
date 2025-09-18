@@ -14,6 +14,9 @@ import {
   AlignVerticalJustifyStart,
   AlignVerticalJustifyCenter,
   AlignVerticalJustifyEnd,
+  ZoomIn,
+  ZoomOut,
+  Search,
 } from "lucide-react";
 
 interface ToolbarProps {
@@ -27,6 +30,9 @@ interface ToolbarProps {
   onExport: () => void;
   onImport: (file: File) => void;
   onDelete?: () => void; // Hacemos la prop opcional
+  zoom: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
 }
 
 export default function Toolbar({
@@ -38,6 +44,9 @@ export default function Toolbar({
   onExport,
   onImport,
   onDelete,
+  zoom,
+  onZoomIn,
+  onZoomOut,
 }: ToolbarProps) {
   return (
     <div className="flex items-center gap-2 p-3 bg-gray-50 border-b border-gray-200 shadow-sm">
@@ -78,6 +87,20 @@ export default function Toolbar({
         </Button>
         <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("bottom")} title="Alinear Abajo">
           <AlignVerticalJustifyEnd size={16} />
+        </Button>
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-2"></div>
+
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="sm" onClick={onZoomOut} title="Alejar">
+          <ZoomOut size={16} />
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => onZoomIn()} title="Resetear Zoom">
+          <span className="w-12 text-center">{Math.round(zoom * 100)}%</span>
+        </Button>
+        <Button variant="outline" size="sm" onClick={onZoomIn} title="Acercar">
+          <ZoomIn size={16} />
         </Button>
       </div>
 

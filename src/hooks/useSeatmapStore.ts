@@ -38,12 +38,19 @@ export const useSeatmapStore = () => {
   );
 
   const setCanvasSettings = useCallback(
-    (updater: { backgroundColor: string } | ((prev: { backgroundColor: string }) => { backgroundColor: string })) => {
+    (updater: { backgroundColor: string; zoom: number } | ((prev: { backgroundColor: string; zoom: number }) => { backgroundColor: string; zoom: number })) => {
       const newSettings =
         typeof updater === "function" ? updater(state.canvasSettings) : updater;
       dispatch({ type: "SET_CANVAS_SETTINGS", payload: newSettings });
     },
     [state.canvasSettings, dispatch]
+  );
+
+  const setZoom = useCallback(
+    (newZoom: number) => {
+      dispatch({ type: "SET_ZOOM", payload: newZoom });
+    },
+    [dispatch]
   );
 
   return {
@@ -57,6 +64,7 @@ export const useSeatmapStore = () => {
     redo,
     setFloors,
     setCanvasSettings,
+    setZoom,
     // Para la UI
     canUndo: state.historyIndex > 0,
     canRedo: state.historyIndex < state.history.length - 1,

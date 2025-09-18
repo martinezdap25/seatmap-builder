@@ -13,6 +13,7 @@ export interface SeatmapState {
   floors: Floor[];
   canvasSettings: {
     backgroundColor: string;
+    zoom: number;
   };
 }
 
@@ -23,6 +24,7 @@ export const initialState: SeatmapState = {
   floors: [{ id: "default", name: "Piso por defecto", color: "#87CEEB" }],
   canvasSettings: {
     backgroundColor: "#ffffff",
+    zoom: 1, // 1 = 100%
   },
 };
 
@@ -31,7 +33,8 @@ export type Action =
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "SET_FLOORS"; payload: Floor[] }
-  | { type: "SET_CANVAS_SETTINGS"; payload: { backgroundColor: string } };
+  | { type: "SET_CANVAS_SETTINGS"; payload: { backgroundColor: string; zoom: number } }
+  | { type: "SET_ZOOM"; payload: number };
 
 // --- 2. Crear el Reducer ---
 
@@ -67,6 +70,10 @@ export const seatmapReducer = produce((draft: SeatmapState, action: Action) => {
     }
     case "SET_CANVAS_SETTINGS": {
       draft.canvasSettings = action.payload;
+      break;
+    }
+    case "SET_ZOOM": {
+      draft.canvasSettings.zoom = action.payload;
       break;
     }
   }

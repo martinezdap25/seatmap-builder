@@ -6,6 +6,7 @@ import ShapeComponent from "./ShapeComponent";
 
 interface CanvasSettings {
   backgroundColor: string;
+  zoom: number;
 }
 
 interface CanvasProps {
@@ -31,7 +32,10 @@ export default function Canvas({ shapes, settings, onUpdateShape, onSelectShape,
           if (selected) onUpdateShape({ ...selected, selected: false });
         }
       }}
-      style={{ backgroundColor: settings.backgroundColor }}
+      style={{
+        backgroundColor: settings.backgroundColor,
+        transform: `scale(${settings.zoom})`,
+      }}
       ref={canvasRef}
     >
       {shapes.map((shape) => (

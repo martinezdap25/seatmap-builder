@@ -18,6 +18,7 @@ function Editor() {
     redo,
     setFloors,
     setCanvasSettings,
+    setZoom,
   } = useSeatmapStore();
 
   const handleNewMap = () => {
@@ -132,6 +133,14 @@ function Editor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo, redo]);
 
+  const handleZoom = (direction: 'in' | 'out' | 'reset') => {
+    const currentZoom = canvasSettings.zoom;
+    const ZOOM_STEP = 0.1;
+    if (direction === 'in') setZoom(currentZoom + ZOOM_STEP);
+    if (direction === 'out') setZoom(Math.max(0.1, currentZoom - ZOOM_STEP)); // No permitir zoom menor a 10%
+    if (direction === 'reset') setZoom(1);
+  };
+
   return (
     <main className="flex flex-col min-h-screen">
       <Toolbar
@@ -143,6 +152,9 @@ function Editor() {
         onExport={handleExport}
         onImport={handleImport}
         onDelete={selectedShapes.length > 0 ? () => handleDelete() : undefined}
+        zoom={canvasSettings.zoom}
+        onZoomIn={() => handleZoom('in')}
+        onZoomOut={() => handleZoom('out')}
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 flex items-center justify-center p-4 bg-gray-100">

@@ -1,14 +1,19 @@
 "use client";
 
 import { Shape } from "@/types/types";
+import { useRef } from "react";
 import ShapeComponent from "./ShapeComponent";
 
 interface CanvasProps {
   shapes: Shape[];
   onUpdateShape: (shape: Shape) => void;
+  onSelectShape: (shapeId: string) => void;
+  onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
 }
 
-export default function Canvas({ shapes, onUpdateShape }: CanvasProps) {
+export default function Canvas({ shapes, onUpdateShape, onSelectShape, onDeleteVertex }: CanvasProps) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+
   return (
     <div
       className="relative w-[1000px] h-[700px] bg-white border border-gray-300 overflow-hidden"
@@ -19,13 +24,16 @@ export default function Canvas({ shapes, onUpdateShape }: CanvasProps) {
           if (selected) onUpdateShape({ ...selected, selected: false });
         }
       }}
+      ref={canvasRef}
     >
       {shapes.map((shape) => (
         <ShapeComponent
           key={shape.id}
           shape={shape}
           onUpdate={onUpdateShape}
-          onSelect={(shapeId) => onUpdateShape({ ...shape, id: shapeId, selected: true })}
+          canvasRef={canvasRef}
+          onSelect={onSelectShape}
+          onDeleteVertex={onDeleteVertex}
         />
       ))}
     </div>

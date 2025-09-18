@@ -6,15 +6,17 @@ export type Seat = {
 
 export type Shape = {
   id: string;
-  type: "rect"; // Por ahora solo rectángulos
+  type: "rect" | "polygon";
   category: string;
   x: number;
   y: number;
-  width: number;
-  height: number;
+  width?: number; // Opcional, ya que los polígonos no lo usan directamente
+  height?: number; // Opcional
   rotation?: number; // en grados
+  vertices?: { x: number; y: number }[]; // Para polígonos
   seats: Seat[];
   selected?: boolean;
+  editingVertices?: boolean; // Nuevo estado para el modo de edición
 };
 
 export type SeatMap = {

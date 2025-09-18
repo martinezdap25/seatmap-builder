@@ -2,17 +2,21 @@
 
 import { Shape } from "@/types/types";
 import { RotateCw } from "lucide-react";
+import VertexHandle from "./VertexHandle";
 import ResizeHandle from "./ResizeHandle";
-import React, { useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 
 interface ShapeComponentProps {
   shape: Shape;
   onUpdate: (shape: Shape) => void;
   onSelect: (shapeId: string) => void;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
 }
 
-export default function ShapeComponent({ shape, onUpdate, onSelect }: ShapeComponentProps) {
+export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, onDeleteVertex, }: ShapeComponentProps) {
   const isDraggingRef = useRef(false);
+  const [selectedVertexIndex, setSelectedVertexIndex] = useState<number | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // Prevenir que el evento se propague al canvas y deseleccione
@@ -51,40 +55,54 @@ export default function ShapeComponent({ shape, onUpdate, onSelect }: ShapeCompo
     e.stopPropagation();
     const startX = e.clientX;
     const startY = e.clientY;
-    const startShapeX = shape.x;
-    const startShapeY = shape.y;
-    const startWidth = shape.width;
-    const startHeight = shape.height;
+    const startWidth = shape.width ?? 0;
+    const startHeight = shape.height ?? 0;
 
     const doResize = (moveEvent: MouseEvent) => {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
+      const rawDx = moveEvent.clientX - startX;
+      const rawDy = moveEvent.clientY - startY;
 
-      let newX = startShapeX;
-      let newY = startShapeY;
+      // "Des-rotar" el movimiento del mouse para alinearlo con los ejes de la forma
+      const angleRad = (shape.rotation ?? 0) * (Math.PI / 180);
+      const cos = Math.cos(-angleRad);
+      const sin = Math.sin(-angleRad);
+      const dx = rawDx * cos - rawDy * sin;
+      const dy = rawDx * sin + rawDy * cos;
+
       let newWidth = startWidth;
       let newHeight = startHeight;
 
-      if (handlePosition.includes('right')) {
+      if (handlePosition.includes("right")) {
         newWidth = startWidth + dx;
       }
-      if (handlePosition.includes('bottom')) {
+      if (handlePosition.includes("bottom")) {
         newHeight = startHeight + dy;
       }
-      if (handlePosition.includes('left')) {
+      if (handlePosition.includes("left")) {
         newWidth = startWidth - dx;
-        newX = startShapeX + dx; // La posición se mueve con el cursor
       }
-      if (handlePosition.includes('top')) {
+      if (handlePosition.includes("top")) {
         newHeight = startHeight - dy;
-        newY = startShapeY + dy; // La posición se mueve con el cursor
       }
 
       // Prevenir que la forma se invierta (ancho/alto negativo)
       if (newWidth < 20) newWidth = 20;
       if (newHeight < 20) newHeight = 20;
 
-      onUpdate({ ...shape, x: newX, y: newY, width: newWidth, height: newHeight });
+      const updatedShape: Shape = { ...shape, width: newWidth, height: newHeight };
+
+      // Si la forma es un polígono, debemos escalar sus vértices.
+      if (shape.type === 'polygon' && shape.vertices && startWidth > 0 && startHeight > 0) {
+        const scaleX = newWidth / startWidth;
+        const scaleY = newHeight / startHeight;
+
+        updatedShape.vertices = shape.vertices.map(vertex => ({
+          x: vertex.x * scaleX,
+          y: vertex.y * scaleY,
+        }));
+      }
+
+      onUpdate(updatedShape);
     };
     
     const stopResize = () => {
@@ -99,6 +117,155 @@ export default function ShapeComponent({ shape, onUpdate, onSelect }: ShapeCompo
     window.addEventListener("mousemove", doResize);
     window.addEventListener("mouseup", stopResize);
   };
+
+  const handleVertexMouseDown = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    e.stopPropagation();
+    setSelectedVertexIndex(index);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!shape.vertices || !canvasRef.current) return;
+
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      const mouseX = moveEvent.clientX - canvasRect.left;
+      const mouseY = moveEvent.clientY - canvasRect.top;
+
+      const newVertexPos = {
+        // La posición del vértice es relativa a la posición (x, y) de la forma
+        x: mouseX - shape.x,
+        y: mouseY - shape.y,
+      };
+
+      const newVertices = [...shape.vertices];
+      newVertices[index] = newVertexPos;
+
+      // Recalcular el bounding box del polígono
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      newVertices.forEach(v => {
+        minX = Math.min(minX, v.x);
+        minY = Math.min(minY, v.y);
+        maxX = Math.max(maxX, v.x);
+        maxY = Math.max(maxY, v.y);
+      });
+
+      // Actualizar la posición y dimensiones de la forma para que coincidan con el nuevo bounding box
+      const newShapeX = shape.x + minX;
+      const newShapeY = shape.y + minY;
+      const newWidth = maxX - minX;
+      const newHeight = maxY - minY;
+
+      // Ajustar los vértices para que sean relativos al nuevo origen (0,0) del bounding box
+      const updatedVertices = newVertices.map(v => ({ x: v.x - minX, y: v.y - minY }));
+
+      onUpdate({ ...shape, x: newShapeX, y: newShapeY, width: newWidth, height: newHeight, vertices: updatedVertices });
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    // Limpieza proactiva
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleSegmentClick = (e: React.MouseEvent<SVGPathElement>, index: number) => {
+    e.stopPropagation();
+    if (!shape.vertices || !shape.editingVertices) return;
+
+    // Obtener el punto de clic relativo al SVG
+    const svg = e.currentTarget.ownerSVGElement;
+    if (!svg) return;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+    const newVertex = { x: svgP.x, y: svgP.y };
+    const newVertices = [...shape.vertices];
+    newVertices.splice(index + 1, 0, newVertex);
+    onUpdate({ ...shape, vertices: newVertices });
+  };
+
+  const handleDoubleClick = () => {
+    if (shape.editingVertices) {
+      // Salimos del modo edición y "consolidamos" la forma.
+      // El bounding box ya fue calculado al mover los vértices, así que la forma
+      // ya tiene el width/height correcto. Solo necesitamos cambiar el estado.
+      onUpdate({
+        ...shape,
+        type: "polygon", // Mantenemos el tipo por si se vuelve a editar
+        editingVertices: false,
+        selected: true,
+      });
+      setSelectedVertexIndex(null);
+    } else {
+      // Si no estamos en modo edición, entramos.
+      let initialVertices: { x: number; y: number }[] = [];
+      if (shape.type === 'rect' && shape.width != null && shape.height != null) {
+        initialVertices = [
+          { x: 0, y: 0 },
+          { x: shape.width, y: 0 },
+          { x: shape.width, y: shape.height },
+          { x: 0, y: shape.height },
+        ];
+      } else if (shape.vertices) {
+        initialVertices = shape.vertices;
+      }
+      onUpdate({
+        ...shape,
+        type: 'polygon',
+        editingVertices: true,
+        selected: false, // Ocultamos los manejadores de transformación
+        vertices: initialVertices,
+      });
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && shape.editingVertices) {
+      // Salimos del modo edición y "consolidamos" la forma.
+      // Similar al doble clic, solo cambiamos el estado.
+      onUpdate({
+        ...shape,
+        type: "polygon",
+        editingVertices: false,
+        selected: true,
+      });
+      setSelectedVertexIndex(null);
+    }
+    if (e.key === 'Delete' && shape.editingVertices && selectedVertexIndex !== null) {
+      onDeleteVertex(shape.id, selectedVertexIndex);
+      setSelectedVertexIndex(null);
+    }
+  };
+
+  React.useEffect(() => {
+    // Usamos una función nombrada para poder agregar y quitar el mismo listener
+    const keydownListener = (e: KeyboardEvent) => handleKeyDown(e);
+
+    if (shape.editingVertices) {
+      window.addEventListener('keydown', keydownListener);
+    }
+    return () => {
+      window.removeEventListener('keydown', keydownListener);
+    };
+  }, [shape.editingVertices, selectedVertexIndex, shape, onUpdate, onDeleteVertex]); // Añadir dependencias
+
+  // Generar el path del polígono para SVG
+  const polygonPath = shape.vertices
+    ? shape.vertices.map((v, i) => (i === 0 ? `M ${v.x} ${v.y}` : `L ${v.x} ${v.y}`)).join(' ') + ' Z'
+    : '';
+
+  // Generar paths invisibles para los segmentos de línea (para hacerlos clickeables)
+  const segmentPaths = shape.vertices && shape.editingVertices
+    ? shape.vertices.map((v, i) => {
+        const nextV = shape.vertices![(i + 1) % shape.vertices!.length];
+        return `M ${v.x} ${v.y} L ${nextV.x} ${nextV.y}`;
+      })
+    : [];
 
   const handleRotateMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -137,19 +304,53 @@ export default function ShapeComponent({ shape, onUpdate, onSelect }: ShapeCompo
       style={{
         left: shape.x,
         top: shape.y,
-        width: shape.width,
-        height: shape.height,
+        width: shape.width ?? 0,
+        height: shape.height ?? 0,
         transform: `rotate(${shape.rotation || 0}deg)`,
       }}
     >
       {/* Este div interno es el que se ve, se selecciona y se arrastra */}
       <div
         onMouseDown={handleMouseDown}
-        className={`w-full h-full transition-shadow duration-150 ${isDraggingRef.current ? 'cursor-grabbing' : 'cursor-grab'} ${shape.selected ? 'outline outline-2 outline-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]' : 'border border-gray-400'}`}
-        style={{ backgroundColor: "rgba(0, 0, 255, 0.1)" }}
-      ></div>
+        onDoubleClick={handleDoubleClick}
+        className={`w-full h-full transition-shadow duration-150 ${isDraggingRef.current ? 'cursor-grabbing' : 'cursor-grab'} ${shape.selected ? 'outline outline-2 outline-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]' : ''}`}
+      >
+        {shape.type === 'rect' && !shape.editingVertices && (
+          <div className="w-full h-full border border-gray-400" style={{ backgroundColor: "rgba(0, 0, 255, 0.1)" }} />
+        )}
+        {(shape.type === 'polygon' || shape.editingVertices) && shape.vertices && (
+          <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+            <path d={polygonPath} fill="rgba(0, 0, 255, 0.1)" stroke="rgb(59, 130, 246)" strokeWidth="2" />
+            {/* Líneas invisibles para capturar clics y añadir vértices */}
+            {segmentPaths.map((path, index) => (
+              <path
+                key={index}
+                d={path}
+                stroke="transparent"
+                strokeWidth="10"
+                className="cursor-copy"
+                onClick={(e) => handleSegmentClick(e, index)}
+              />
+            ))}
+          </svg>
+        )}
+      </div>
 
-      {shape.selected && (
+      {shape.editingVertices && shape.vertices?.map((vertex, index) => (
+        <VertexHandle
+          key={index}
+          x={vertex.x}
+          y={vertex.y}
+          isSelected={selectedVertexIndex === index}
+          onMouseDown={(e) => handleVertexMouseDown(e, index)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedVertexIndex(index);
+          }}
+        />
+      ))}
+
+      {shape.selected && !shape.editingVertices && (
         <>
           {/* Manejador de Rotación con Icono */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-10 h-8 w-px bg-blue-500">

@@ -45,6 +45,28 @@ export default function HomePage() {
     );
   };
 
+  const handleSelectShape = (shapeId: string) => {
+    setShapes((prev) =>
+      prev.map((s) => ({
+        ...s,
+        selected: s.id === shapeId,
+      }))
+    );
+  };
+
+  const handleDeleteVertex = (shapeId: string, vertexIndex: number) => {
+    setShapes((prev) =>
+      prev.map((s) => {
+        if (s.id === shapeId && s.vertices && s.vertices.length > 3) { // Mínimo 3 vértices para un polígono
+          const newVertices = [...s.vertices];
+          newVertices.splice(vertexIndex, 1);
+          return { ...s, vertices: newVertices };
+        }
+        return s;
+      })
+    );
+  };
+
   return (
     <main className="flex flex-col min-h-screen">
       <Toolbar
@@ -56,7 +78,12 @@ export default function HomePage() {
         onDelete={handleDelete}
       />
       <div className="flex-1 flex items-center justify-center bg-gray-100">
-        <Canvas shapes={shapes} onUpdateShape={handleUpdateShape} />
+        <Canvas
+          shapes={shapes}
+          onUpdateShape={handleUpdateShape}
+          onSelectShape={handleSelectShape}
+          onDeleteVertex={handleDeleteVertex}
+        />
       </div>
     </main>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Toolbar from "@/components/Toolbar";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
@@ -8,16 +8,29 @@ import { Shape } from "@/types/types";
 
 export default function HomePage() {
   const [shapes, setShapes] = useState<Shape[]>([]);
+  const [history, setHistory] = useState<Shape[][]>([[]]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
   const [canvasSettings, setCanvasSettings] = useState({
     backgroundColor: "#ffffff",
   });
 
+  const updateShapesAndHistory = (newShapes: Shape[] | ((prev: Shape[]) => Shape[])) => {
+    const resolvedShapes = typeof newShapes === 'function' ? newShapes(shapes) : newShapes;
+    setShapes(resolvedShapes);
+
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(resolvedShapes);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
   const handleNewMap = () => {
-    setShapes([]);
+    updateShapesAndHistory([]);
   };
 
   const handleAddRect = () => {
-    setShapes((prev) => [
+    updateShapesAndHistory((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
@@ -40,7 +53,7 @@ export default function HomePage() {
     alert(`Importar JSON desde archivo: ${file.name} (a implementar)`);
   
   const handleDelete = (shapeId?: string) => {
-    setShapes((prev) => prev.filter((s) => (shapeId ? s.id !== shapeId : !s.selected)));
+    updateShapesAndHistory((prev) => prev.filter((s) => (shapeId ? s.id !== shapeId : !s.selected)));
   };
 
   // Para habilitar/deshabilitar el botón de la toolbar
@@ -48,7 +61,7 @@ export default function HomePage() {
   const selectedShape = shapes.find((s) => s.selected) || null;
 
   const handleUpdateShape = (updatedShape: Shape) => {
-    setShapes((prev) =>
+    updateShapesAndHistory((prev) =>
       prev.map((s) => {
         if (s.id === updatedShape.id) {
           return updatedShape;
@@ -60,7 +73,7 @@ export default function HomePage() {
   };
 
   const handleSelectShape = (shapeId: string, isShiftPressed: boolean) => {
-    setShapes((prev) => {
+    updateShapesAndHistory((prev) => {
       if (isShiftPressed) {
         // Si Shift está presionado, alterna la selección de la figura clickeada
         return prev.map((s) =>
@@ -95,7 +108,7 @@ export default function HomePage() {
       bottom: CANVAS_HEIGHT,
     };
 
-    setShapes((prev) =>
+    updateShapesAndHistory((prev) =>
       prev.map((s) => {
         if (!s.selected) return s;
 
@@ -113,7 +126,7 @@ export default function HomePage() {
   };
 
   const handleDeleteVertex = (shapeId: string, vertexIndex: number) => {
-    setShapes((prev) =>
+    updateShapesAndHistory((prev) =>
       prev.map((s) => {
         if (s.id === shapeId && s.vertices && s.vertices.length > 3) { // Mínimo 3 vértices para un polígono
           const newVertices = [...s.vertices];
@@ -124,6 +137,31 @@ export default function HomePage() {
       })
     );
   };
+
+  const handleUndo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setShapes(history[newIndex]);
+    }
+  }, [history, historyIndex]);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setShapes(history[newIndex]);
+    }
+  }, [history, historyIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'z') handleUndo();
+      if (e.ctrlKey && e.key === 'y') handleRedo();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   return (
     <main className="flex flex-col min-h-screen">

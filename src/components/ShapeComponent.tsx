@@ -31,8 +31,35 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    onSelect(shape.id, e.shiftKey);
-    handleDrag(e, shape, onUpdate);
+
+    const wasSelected = shape.selected;
+    const initialX = e.clientX;
+    const initialY = e.clientY;
+    let hasDragged = false;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const dx = Math.abs(moveEvent.clientX - initialX);
+      const dy = Math.abs(moveEvent.clientY - initialY);
+      // Si el mouse se ha movido más de un umbral pequeño, consideramos que es un arrastre.
+      if (dx > 3 || dy > 3) {
+        hasDragged = true;
+      }
+    };
+
+    const handleMouseUp = (upEvent: MouseEvent) => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      // Si no se arrastró, es un clic. Seleccionamos la figura.
+      if (!hasDragged) {
+        onSelect(shape.id, upEvent.shiftKey);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    // Siempre iniciamos el arrastre, pero la selección se decide en el mouseup.
+    handleDrag(e, { ...shape, selected: wasSelected }, onUpdate);
   };
 
   const handleDoubleClick = () => {

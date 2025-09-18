@@ -12,6 +12,7 @@ export type Shape = {
   y: number;
   width: number;
   height: number;
+  rotation?: number; // en grados
   seats: Seat[];
   selected?: boolean;
 };

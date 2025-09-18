@@ -21,6 +21,7 @@ export default function HomePage() {
         y: 100,
         width: 150,
         height: 100,
+        rotation: 0,
         seats: [],
       },
     ]);

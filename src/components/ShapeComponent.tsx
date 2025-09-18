@@ -1,6 +1,7 @@
 "use client";
 
 import { Shape } from "@/types/types";
+import { RotateCw } from "lucide-react";
 import ResizeHandle from "./ResizeHandle";
 import React, { useEffect, useRef } from "react";
 
@@ -99,6 +100,36 @@ export default function ShapeComponent({ shape, onUpdate, onSelect }: ShapeCompo
     window.addEventListener("mouseup", stopResize);
   };
 
+  const handleRotateMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+
+    const shapeElement = e.currentTarget.parentElement?.parentElement;
+    if (!shapeElement) return;
+
+    const rect = shapeElement.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const doRotate = (moveEvent: MouseEvent) => {
+      const angleRad = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX);
+      const angleDeg = angleRad * (180 / Math.PI) + 90; // +90 para alinear con el eje Y
+
+      onUpdate({ ...shape, rotation: angleDeg });
+    };
+
+    const stopRotate = () => {
+      window.removeEventListener("mousemove", doRotate);
+      window.removeEventListener("mouseup", stopRotate);
+    };
+
+    // Limpiamos listeners previos por si acaso
+    window.removeEventListener("mousemove", doRotate);
+    window.removeEventListener("mouseup", stopRotate);
+
+    window.addEventListener("mousemove", doRotate);
+    window.addEventListener("mouseup", stopRotate);
+  };
+
   return (
     <div
       // Este div ahora es solo un contenedor para posicionamiento y los manejadores
@@ -108,6 +139,7 @@ export default function ShapeComponent({ shape, onUpdate, onSelect }: ShapeCompo
         top: shape.y,
         width: shape.width,
         height: shape.height,
+        transform: `rotate(${shape.rotation || 0}deg)`,
       }}
     >
       {/* Este div interno es el que se ve, se selecciona y se arrastra */}
@@ -119,6 +151,17 @@ export default function ShapeComponent({ shape, onUpdate, onSelect }: ShapeCompo
 
       {shape.selected && (
         <>
+          {/* Manejador de Rotación con Icono */}
+          <div className="absolute left-1/2 -translate-x-1/2 -top-10 h-8 w-px bg-blue-500">
+            <div
+              title="Rotar forma"
+              onMouseDown={handleRotateMouseDown}
+              className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full p-1 bg-white border-2 border-blue-500 rounded-full cursor-alias"
+            >
+              <RotateCw size={16} className="text-blue-600" />
+            </div>
+          </div>
+
           {/* Esquinas */}
           <ResizeHandle position="-top-1.5 -left-1.5" cursor="cursor-nwse-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'top-left')} />
           <ResizeHandle position="-top-1.5 -right-1.5" cursor="cursor-nesw-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'top-right')} />

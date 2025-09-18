@@ -1,6 +1,7 @@
 "use client";
 
 import { Shape } from "@/types/types";
+import ShapeComponent from "./ShapeComponent";
 
 interface CanvasProps {
   shapes: Shape[];
@@ -8,20 +9,6 @@ interface CanvasProps {
 }
 
 export default function Canvas({ shapes, onUpdateShape }: CanvasProps) {
-  const handleSelectShape = (shapeId: string) => {
-    // Deselecciona todas las demás y selecciona la actual
-    const updatedShapes = shapes.map((s) => ({
-      ...s,
-      selected: s.id === shapeId,
-    }));
-    // Para actualizar el estado, necesitamos llamar a una función que reemplace todo el array
-    // Por ahora, lo manejaremos en el padre. Aquí solo notificamos el cambio.
-    const selectedShape = updatedShapes.find((s) => s.id === shapeId);
-    if (selectedShape) {
-      onUpdateShape(selectedShape);
-    }
-  };
-
   return (
     <div
       className="relative w-[1000px] h-[700px] bg-white border border-gray-300 overflow-hidden"
@@ -34,17 +21,11 @@ export default function Canvas({ shapes, onUpdateShape }: CanvasProps) {
       }}
     >
       {shapes.map((shape) => (
-        <div
+        <ShapeComponent
           key={shape.id}
-          onClick={() => handleSelectShape(shape.id)}
-          className={`absolute cursor-pointer ${shape.selected ? 'border-2 border-blue-500' : 'border border-gray-400'}`}
-          style={{
-            left: shape.x,
-            top: shape.y,
-            width: shape.width,
-            height: shape.height,
-            backgroundColor: 'rgba(0, 0, 255, 0.1)',
-          }}
+          shape={shape}
+          onUpdate={onUpdateShape}
+          onSelect={(shapeId) => onUpdateShape({ ...shape, id: shapeId, selected: true })}
         />
       ))}
     </div>

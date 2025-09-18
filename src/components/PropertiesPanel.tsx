@@ -50,7 +50,7 @@ export default function PropertiesPanel({
     );
   }
 
-  const handleUpdate = (prop: keyof Shape, value: number) => {
+  const handleUpdate = (prop: keyof Shape, value: string | number) => {
     onUpdate({ ...selectedShape, [prop]: value });
   };
 
@@ -58,6 +58,15 @@ export default function PropertiesPanel({
     <div className="w-64 p-4 border-l border-gray-200 bg-gray-50">
       <h3 className="font-semibold text-gray-800 mb-4">Propiedades</h3>
       <div className="space-y-3">
+        <div>
+          <label className="text-sm text-gray-600">Etiqueta</label>
+          <input
+            type="text"
+            value={selectedShape.label || ''}
+            onChange={(e) => handleUpdate('label', e.target.value)}
+            className="w-full mt-1 p-1 border border-gray-300 rounded-md text-sm"
+          />
+        </div>
         <PropertyInput
           label="Posición X"
           value={selectedShape.x}

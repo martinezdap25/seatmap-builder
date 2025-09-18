@@ -14,6 +14,7 @@ export type Shape = {
   height?: number; // Opcional
   rotation?: number; // en grados
   vertices?: { x: number; y: number }[]; // Para polígonos
+  label?: string; // Para el texto dentro de la figura
   seats: Seat[];
   selected?: boolean;
   editingVertices?: boolean; // Nuevo estado para el modo de edición

@@ -12,7 +12,7 @@ interface CanvasProps {
   shapes: Shape[];
   settings: CanvasSettings;
   onUpdateShape: (shape: Shape) => void;
-  onSelectShape: (shapeId: string) => void;
+  onSelectShape: (shapeId: string, isShiftPressed: boolean) => void;
   onDeleteShape: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
 }

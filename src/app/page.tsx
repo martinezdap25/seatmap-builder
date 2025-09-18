@@ -28,6 +28,7 @@ export default function HomePage() {
         width: 150,
         height: 100,
         rotation: 0,
+        label: '',
         seats: [],
       },
     ]);
@@ -43,7 +44,7 @@ export default function HomePage() {
   };
 
   // Para habilitar/deshabilitar el botón de la toolbar
-  const isShapeSelected = shapes.some((s) => s.selected);
+  const selectedShapes = shapes.filter((s) => s.selected);
   const selectedShape = shapes.find((s) => s.selected) || null;
 
   const handleUpdateShape = (updatedShape: Shape) => {
@@ -58,12 +59,56 @@ export default function HomePage() {
     );
   };
 
-  const handleSelectShape = (shapeId: string) => {
+  const handleSelectShape = (shapeId: string, isShiftPressed: boolean) => {
+    setShapes((prev) => {
+      if (isShiftPressed) {
+        // Si Shift está presionado, alterna la selección de la figura clickeada
+        return prev.map((s) =>
+          s.id === shapeId ? { ...s, selected: !s.selected } : s
+        );
+      } else {
+        // Comportamiento normal: selecciona solo la figura clickeada
+        return prev.map((s) => ({
+          ...s,
+          selected: s.id === shapeId,
+        }));
+      }
+    });
+  };
+
+  const handleAlign = (
+    alignment: "left" | "center-h" | "right" | "top" | "center-v" | "bottom"
+  ) => {
+    if (selectedShapes.length < 1) return;
+
+    const CANVAS_WIDTH = 1000;
+    const CANVAS_HEIGHT = 700;
+
+    const targetX = {
+      left: 0,
+      "center-h": CANVAS_WIDTH / 2,
+      right: CANVAS_WIDTH,
+    };
+    const targetY = {
+      top: 0,
+      "center-v": CANVAS_HEIGHT / 2,
+      bottom: CANVAS_HEIGHT,
+    };
+
     setShapes((prev) =>
-      prev.map((s) => ({
-        ...s,
-        selected: s.id === shapeId,
-      }))
+      prev.map((s) => {
+        if (!s.selected) return s;
+
+        switch (alignment) {
+          case "left": return { ...s, x: targetX.left };
+          case "center-h": return { ...s, x: targetX["center-h"] - (s.width ?? 0) / 2 };
+          case "right": return { ...s, x: targetX.right - (s.width ?? 0) };
+          case "top": return { ...s, y: targetY.top };
+          case "center-v": return { ...s, y: targetY["center-v"] - (s.height ?? 0) / 2 };
+          case "bottom": return { ...s, y: targetY.bottom - (s.height ?? 0) };
+          default: return s;
+        }
+      })
     );
   };
 
@@ -86,9 +131,11 @@ export default function HomePage() {
         onNewMap={handleNewMap}
         onAddRect={handleAddRect}
         onBatchLabel={handleBatchLabel}
+        onAlign={handleAlign}
+        canAlign={selectedShapes.length > 0}
         onExport={handleExport}
         onImport={handleImport}
-        onDelete={isShapeSelected ? () => handleDelete() : undefined}
+        onDelete={selectedShapes.length > 0 ? () => handleDelete() : undefined}
       />
       <div className="flex flex-1 overflow-hidden">
         <div

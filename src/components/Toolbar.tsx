@@ -1,12 +1,29 @@
 "use client";
 
 import { Button } from "./ui/Button";
-import { Plus, Square, Download, Upload, Trash2, Tag } from "lucide-react";
+import {
+  Plus,
+  Square,
+  Download,
+  Upload,
+  Trash2,
+  Tag,
+  AlignHorizontalJustifyStart,
+  AlignHorizontalJustifyCenter,
+  AlignHorizontalJustifyEnd,
+  AlignVerticalJustifyStart,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+} from "lucide-react";
 
 interface ToolbarProps {
   onNewMap: () => void;
   onAddRect: () => void;
   onBatchLabel: () => void;
+  onAlign: (
+    alignment: "left" | "center-h" | "right" | "top" | "center-v" | "bottom"
+  ) => void;
+  canAlign: boolean;
   onExport: () => void;
   onImport: (file: File) => void;
   onDelete?: () => void; // Hacemos la prop opcional
@@ -16,6 +33,8 @@ export default function Toolbar({
   onNewMap,
   onAddRect,
   onBatchLabel,
+  onAlign,
+  canAlign,
   onExport,
   onImport,
   onDelete,
@@ -33,6 +52,36 @@ export default function Toolbar({
       <Button variant="outline" size="sm" onClick={onBatchLabel}>
         <Tag size={16} /> Etiquetar
       </Button>
+
+      <div className="h-6 w-px bg-gray-300 mx-2"></div>
+
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("left")} title="Alinear a la Izquierda">
+          <AlignHorizontalJustifyStart size={16} />
+        </Button>
+        <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("center-h")} title="Centrar Horizontalmente">
+          <AlignHorizontalJustifyCenter size={16} />
+        </Button>
+        <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("right")} title="Alinear a la Derecha">
+          <AlignHorizontalJustifyEnd size={16} />
+        </Button>
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-1"></div>
+
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("top")} title="Alinear Arriba">
+          <AlignVerticalJustifyStart size={16} />
+        </Button>
+        <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("center-v")} title="Centrar Verticalmente">
+          <AlignVerticalJustifyCenter size={16} />
+        </Button>
+        <Button variant="outline" size="sm" disabled={!canAlign} onClick={() => onAlign("bottom")} title="Alinear Abajo">
+          <AlignVerticalJustifyEnd size={16} />
+        </Button>
+      </div>
+
+      <div className="h-6 w-px bg-gray-300 mx-2"></div>
 
       <Button
         variant="outline"

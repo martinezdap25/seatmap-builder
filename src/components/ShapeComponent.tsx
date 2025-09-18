@@ -11,7 +11,7 @@ import { useVertexEditing } from "@/hooks/useVertexEditing"; // El nuevo hook
 interface ShapeComponentProps {
   shape: Shape;
   onUpdate: (shape: Shape) => void;
-  onSelect: (shapeId: string) => void;
+  onSelect: (shapeId: string, isShiftPressed: boolean) => void;
   canvasRef: React.RefObject<HTMLDivElement | null>;
   onDelete: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
@@ -30,7 +30,7 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    onSelect(shape.id);
+    onSelect(shape.id, e.shiftKey);
     handleDrag(e, shape, onUpdate);
   };
 
@@ -67,7 +67,15 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
   // Listener para la tecla Suprimir
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar si el usuario está escribiendo en un input, textarea, etc.
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
       if ((e.key === 'Delete' || e.key === 'Backspace') && shape.selected && !shape.editingVertices) {
+        // Prevenir que el navegador retroceda la página con la tecla Backspace
+        e.preventDefault();
         onDelete(shape.id);
       }
     };
@@ -104,8 +112,13 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
       <div
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
-        className={`w-full h-full transition-shadow duration-150 ${shape.selected ? 'outline outline-2 outline-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]' : ''}`}
+        className={`relative w-full h-full transition-shadow duration-150 ${shape.selected ? 'outline outline-2 outline-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]' : ''}`}
       >
+        {/* Contenedor para el texto */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-800 font-semibold select-none">
+          {shape.label}
+        </div>
+
         {shape.type === 'rect' && !shape.editingVertices && (
           <div className="w-full h-full border border-gray-400" style={{ backgroundColor: "rgba(0, 0, 255, 0.1)" }} />
         )}

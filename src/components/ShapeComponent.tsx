@@ -115,7 +115,17 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
         className={`relative w-full h-full transition-shadow duration-150 ${shape.selected ? 'outline outline-2 outline-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]' : ''}`}
       >
         {/* Contenedor para el texto */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-800 font-semibold select-none">
+        <div
+          className="absolute inset-0 flex items-center pointer-events-none select-none p-2"
+          style={{
+            justifyContent:
+              shape.textOptions?.align === 'left' ? 'flex-start' :
+              shape.textOptions?.align === 'right' ? 'flex-end' :
+              'center',
+            color: shape.textOptions?.color || '#333333',
+            fontWeight: shape.textOptions?.isBold ? 'bold' : 'normal',
+          }}
+        >
           {shape.label}
         </div>
 

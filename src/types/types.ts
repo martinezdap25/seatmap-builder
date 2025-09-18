@@ -4,6 +4,12 @@ export type Seat = {
   // Posición relativa dentro de la forma
 };
 
+export type TextOptions = {
+  color?: string;
+  align?: 'left' | 'center' | 'right';
+  isBold?: boolean;
+};
+
 export type Shape = {
   id: string;
   type: "rect" | "polygon";
@@ -15,6 +21,7 @@ export type Shape = {
   rotation?: number; // en grados
   vertices?: { x: number; y: number }[]; // Para polígonos
   label?: string; // Para el texto dentro de la figura
+  textOptions?: TextOptions;
   seats: Seat[];
   selected?: boolean;
   editingVertices?: boolean; // Nuevo estado para el modo de edición

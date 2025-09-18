@@ -42,6 +42,11 @@ export default function HomePage() {
         height: 100,
         rotation: 0,
         label: '',
+        textOptions: {
+          align: 'center',
+          isBold: false,
+          color: '#333333',
+        },
         seats: [],
       },
     ]);

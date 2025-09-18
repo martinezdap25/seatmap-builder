@@ -2,13 +2,19 @@
 
 import { useState } from "react";
 import Toolbar from "@/components/Toolbar";
+import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
 import { Shape } from "@/types/types";
 
 export default function HomePage() {
   const [shapes, setShapes] = useState<Shape[]>([]);
+  const [canvasSettings, setCanvasSettings] = useState({
+    backgroundColor: "#ffffff",
+  });
 
-  const handleNewMap = () => setShapes([]);
+  const handleNewMap = () => {
+    setShapes([]);
+  };
 
   const handleAddRect = () => {
     setShapes((prev) => [
@@ -38,6 +44,7 @@ export default function HomePage() {
 
   // Para habilitar/deshabilitar el botón de la toolbar
   const isShapeSelected = shapes.some((s) => s.selected);
+  const selectedShape = shapes.find((s) => s.selected) || null;
 
   const handleUpdateShape = (updatedShape: Shape) => {
     setShapes((prev) =>
@@ -83,13 +90,24 @@ export default function HomePage() {
         onImport={handleImport}
         onDelete={isShapeSelected ? () => handleDelete() : undefined}
       />
-      <div className="flex-1 flex items-center justify-center bg-gray-100">
-        <Canvas
-          shapes={shapes}
-          onUpdateShape={handleUpdateShape}
-          onSelectShape={handleSelectShape}
-          onDeleteShape={handleDelete}
-          onDeleteVertex={handleDeleteVertex}
+      <div className="flex flex-1 overflow-hidden">
+        <div
+          className="flex-1 flex items-center justify-center p-4 bg-gray-100"
+        >
+          <Canvas
+            shapes={shapes}
+            settings={canvasSettings}
+            onUpdateShape={handleUpdateShape}
+            onSelectShape={handleSelectShape}
+            onDeleteShape={handleDelete}
+            onDeleteVertex={handleDeleteVertex}
+          />
+        </div>
+        <PropertiesPanel
+          selectedShape={selectedShape}
+          onUpdate={handleUpdateShape}
+          canvasSettings={canvasSettings}
+          onCanvasSettingsChange={setCanvasSettings}
         />
       </div>
     </main>

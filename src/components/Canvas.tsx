@@ -4,20 +4,25 @@ import { Shape } from "@/types/types";
 import { useRef } from "react";
 import ShapeComponent from "./ShapeComponent";
 
+interface CanvasSettings {
+  backgroundColor: string;
+}
+
 interface CanvasProps {
   shapes: Shape[];
+  settings: CanvasSettings;
   onUpdateShape: (shape: Shape) => void;
   onSelectShape: (shapeId: string) => void;
   onDeleteShape: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
 }
 
-export default function Canvas({ shapes, onUpdateShape, onSelectShape, onDeleteShape, onDeleteVertex, }: CanvasProps) {
+export default function Canvas({ shapes, settings, onUpdateShape, onSelectShape, onDeleteShape, onDeleteVertex, }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   return (
     <div
-      className="relative w-[1000px] h-[700px] bg-white border border-gray-300 overflow-hidden"
+      className="relative w-[1000px] h-[700px] bg-transparent border border-gray-300 overflow-hidden"
       // Deseleccionar al hacer clic en el fondo
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -25,6 +30,7 @@ export default function Canvas({ shapes, onUpdateShape, onSelectShape, onDeleteS
           if (selected) onUpdateShape({ ...selected, selected: false });
         }
       }}
+      style={{ backgroundColor: settings.backgroundColor }}
       ref={canvasRef}
     >
       {shapes.map((shape) => (

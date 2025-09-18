@@ -4,8 +4,8 @@ import { Shape } from "@/types/types";
 import { RotateCw } from "lucide-react";
 import VertexHandle from "./VertexHandle";
 import ResizeHandle from "./ResizeHandle";
-import React, { useState, useRef } from "react";
-import { useInteraction } from "@/hooks/useInteraction"; // Ya lo teníamos
+import React from "react";
+import { useInteraction } from "@/hooks/useInteraction";
 import { useVertexEditing } from "@/hooks/useVertexEditing"; // El nuevo hook
 
 interface ShapeComponentProps {
@@ -13,10 +13,11 @@ interface ShapeComponentProps {
   onUpdate: (shape: Shape) => void;
   onSelect: (shapeId: string) => void;
   canvasRef: React.RefObject<HTMLDivElement | null>;
+  onDelete: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
 }
 
-export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, onDeleteVertex, }: ShapeComponentProps) {
+export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, onDelete, onDeleteVertex, }: ShapeComponentProps) {
   const { handleDrag, handleResize, handleRotate } = useInteraction();
   const {
     selectedVertexIndex,
@@ -62,6 +63,17 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
       });
     }
   };
+
+  // Listener para la tecla Suprimir
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && shape.selected && !shape.editingVertices) {
+        onDelete(shape.id);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [shape.selected, shape.editingVertices, shape.id, onDelete]);
 
   // Generar el path del polígono para SVG
   const polygonPath = shape.vertices

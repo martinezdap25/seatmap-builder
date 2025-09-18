@@ -31,7 +31,13 @@ export default function HomePage() {
   const handleExport = () => alert("Exportar JSON todavía no implementado 🚀");
   const handleImport = (file: File) =>
     alert(`Importar JSON desde archivo: ${file.name} (a implementar)`);
-  const handleDelete = () => alert("Eliminar cuadrados (pendiente)");
+  
+  const handleDelete = (shapeId?: string) => {
+    setShapes((prev) => prev.filter((s) => (shapeId ? s.id !== shapeId : !s.selected)));
+  };
+
+  // Para habilitar/deshabilitar el botón de la toolbar
+  const isShapeSelected = shapes.some((s) => s.selected);
 
   const handleUpdateShape = (updatedShape: Shape) => {
     setShapes((prev) =>
@@ -75,13 +81,14 @@ export default function HomePage() {
         onBatchLabel={handleBatchLabel}
         onExport={handleExport}
         onImport={handleImport}
-        onDelete={handleDelete}
+        onDelete={isShapeSelected ? () => handleDelete() : undefined}
       />
       <div className="flex-1 flex items-center justify-center bg-gray-100">
         <Canvas
           shapes={shapes}
           onUpdateShape={handleUpdateShape}
           onSelectShape={handleSelectShape}
+          onDeleteShape={handleDelete}
           onDeleteVertex={handleDeleteVertex}
         />
       </div>

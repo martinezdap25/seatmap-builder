@@ -8,10 +8,11 @@ interface CanvasProps {
   shapes: Shape[];
   onUpdateShape: (shape: Shape) => void;
   onSelectShape: (shapeId: string) => void;
+  onDeleteShape: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
 }
 
-export default function Canvas({ shapes, onUpdateShape, onSelectShape, onDeleteVertex }: CanvasProps) {
+export default function Canvas({ shapes, onUpdateShape, onSelectShape, onDeleteShape, onDeleteVertex, }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -33,6 +34,7 @@ export default function Canvas({ shapes, onUpdateShape, onSelectShape, onDeleteV
           onUpdate={onUpdateShape}
           canvasRef={canvasRef}
           onSelect={onSelectShape}
+          onDelete={onDeleteShape}
           onDeleteVertex={onDeleteVertex}
         />
       ))}

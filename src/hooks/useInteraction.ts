@@ -11,11 +11,21 @@ export function useInteraction() {
   const handleDrag: InteractionHandler = (e, shape, onUpdate) => {
     const dragStart = { x: e.clientX - shape.x, y: e.clientY - shape.y };
 
+    const SNAP_GRID_SIZE = 10; // Snap to a 10x10 grid
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
+      let newX = moveEvent.clientX - dragStart.x;
+      let newY = moveEvent.clientY - dragStart.y;
+
+      if (moveEvent.shiftKey) {
+        newX = Math.round(newX / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+        newY = Math.round(newY / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+      }
+
       onUpdate({
         ...shape,
-        x: moveEvent.clientX - dragStart.x,
-        y: moveEvent.clientY - dragStart.y,
+        x: newX,
+        y: newY,
       });
     };
 
@@ -58,6 +68,16 @@ export function useInteraction() {
       if (handlePosition.includes("left")) newWidth = startWidth - dx;
       if (handlePosition.includes("top")) newHeight = startHeight - dy;
 
+      // Mantener la proporción con Shift
+      if (moveEvent.shiftKey && startWidth > 0 && startHeight > 0) {
+        const aspectRatio = startWidth / startHeight;
+        if (handlePosition.includes('left') || handlePosition.includes('right')) {
+          newHeight = newWidth / aspectRatio;
+        } else {
+          newWidth = newHeight * aspectRatio;
+        }
+      }
+
       if (newWidth < 20) newWidth = 20;
       if (newHeight < 20) newHeight = 20;
 
@@ -93,8 +113,14 @@ export function useInteraction() {
     const centerY = rect.top + rect.height / 2;
 
     const doRotate = (moveEvent: MouseEvent) => {
+      const SNAP_ANGLE = 15; // Snap to 15-degree increments
       const angleRad = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX);
-      const angleDeg = angleRad * (180 / Math.PI) + 90;
+      let angleDeg = angleRad * (180 / Math.PI) + 90;
+
+      if (moveEvent.shiftKey) {
+        angleDeg = Math.round(angleDeg / SNAP_ANGLE) * SNAP_ANGLE;
+      }
+
       onUpdate({ ...shape, rotation: angleDeg });
     };
 

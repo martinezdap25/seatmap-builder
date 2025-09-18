@@ -9,7 +9,7 @@ interface ToolbarProps {
   onBatchLabel: () => void;
   onExport: () => void;
   onImport: (file: File) => void;
-  onDelete: () => void;
+  onDelete?: () => void; // Hacemos la prop opcional
 }
 
 export default function Toolbar({
@@ -37,8 +37,9 @@ export default function Toolbar({
       <Button
         variant="outline"
         size="sm"
-        onClick={onDelete}
-        className="text-red-600 border-red-400"
+        onClick={onDelete} // onDelete puede ser undefined
+        disabled={!onDelete} // Deshabilitamos el botón si onDelete no se pasa
+        className="disabled:opacity-50 disabled:cursor-not-allowed text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
       >
         <Trash2 size={16} /> Eliminar
       </Button>

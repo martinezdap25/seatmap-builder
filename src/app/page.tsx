@@ -33,7 +33,15 @@ export default function HomePage() {
   const handleDelete = () => alert("Eliminar cuadrados (pendiente)");
 
   const handleUpdateShape = (updatedShape: Shape) => {
-    setShapes((prev) => prev.map((s) => (s.id === updatedShape.id ? updatedShape : s)));
+    setShapes((prev) =>
+      prev.map((s) => {
+        if (s.id === updatedShape.id) {
+          return updatedShape;
+        }
+        // Si la forma actualizada está seleccionada, deselecciona las demás
+        return updatedShape.selected ? { ...s, selected: false } : s;
+      })
+    );
   };
 
   return (

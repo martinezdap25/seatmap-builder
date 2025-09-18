@@ -1,9 +1,6 @@
 "use client";
 
-import { Stage, Layer, Rect, Transformer, Group } from "react-konva";
-import { useRef, useEffect } from "react";
 import { Shape } from "@/types/types";
-import Konva from "konva";
 
 interface CanvasProps {
   shapes: Shape[];
@@ -11,67 +8,45 @@ interface CanvasProps {
 }
 
 export default function Canvas({ shapes, onUpdateShape }: CanvasProps) {
-  const transformerRef = useRef<Konva.Transformer>(null);
-  const selectedId = shapes.find((s) => s.selected)?.id || null;
-
-  useEffect(() => {
-    if (selectedId && transformerRef.current) {
-      const layer = transformerRef.current.getLayer();
-      const node = layer?.findOne(`#${selectedId}`);
-      transformerRef.current.nodes(node ? [node] : []);
-      transformerRef.current.getLayer()?.batchDraw();
+  const handleSelectShape = (shapeId: string) => {
+    // Deselecciona todas las demás y selecciona la actual
+    const updatedShapes = shapes.map((s) => ({
+      ...s,
+      selected: s.id === shapeId,
+    }));
+    // Para actualizar el estado, necesitamos llamar a una función que reemplace todo el array
+    // Por ahora, lo manejaremos en el padre. Aquí solo notificamos el cambio.
+    const selectedShape = updatedShapes.find((s) => s.id === shapeId);
+    if (selectedShape) {
+      onUpdateShape(selectedShape);
     }
-  }, [selectedId, shapes]);
-
-  const updateShapePosition = (id: string, x: number, y: number) => {
-    const shape = shapes.find((s) => s.id === id);
-    if (!shape) return;
-    onUpdateShape({ ...shape, x, y });
-  };
-
-  const updateShapeSize = (id: string, width: number, height: number) => {
-    const shape = shapes.find((s) => s.id === id);
-    if (!shape) return;
-    onUpdateShape({ ...shape, width, height });
   };
 
   return (
-    <Stage width={1000} height={700} style={{ border: "1px solid #ccc" }}>
-      <Layer>
-        {shapes.map((shape) => (
-          <Group key={shape.id}>
-            <Rect
-              id={shape.id}
-              x={shape.x}
-              y={shape.y}
-              width={shape.width ?? 150}
-              height={shape.height ?? 100}
-              fill="rgba(0,0,255,0.2)"
-              stroke="blue"
-              strokeWidth={2}
-              draggable
-              onDragEnd={(e) => updateShapePosition(shape.id, e.target.x(), e.target.y())}
-              onTransformEnd={(e) => {
-                const node = e.target;
-                const scaleX = node.scaleX();
-                const scaleY = node.scaleY();
-                node.scaleX(1);
-                node.scaleY(1);
-                updateShapeSize(
-                  shape.id,
-                  (shape.width ?? 150) * scaleX,
-                  (shape.height ?? 100) * scaleY
-                );
-              }}
-            />
-          </Group>
-        ))}
-        <Transformer
-          ref={transformerRef}
-          rotateEnabled
-          enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+    <div
+      className="relative w-[1000px] h-[700px] bg-white border border-gray-300 overflow-hidden"
+      // Deseleccionar al hacer clic en el fondo
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          const selected = shapes.find(s => s.selected);
+          if (selected) onUpdateShape({ ...selected, selected: false });
+        }
+      }}
+    >
+      {shapes.map((shape) => (
+        <div
+          key={shape.id}
+          onClick={() => handleSelectShape(shape.id)}
+          className={`absolute cursor-pointer ${shape.selected ? 'border-2 border-blue-500' : 'border border-gray-400'}`}
+          style={{
+            left: shape.x,
+            top: shape.y,
+            width: shape.width,
+            height: shape.height,
+            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+          }}
         />
-      </Layer>
-    </Stage>
+      ))}
+    </div>
   );
 }

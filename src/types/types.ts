@@ -1,18 +1,17 @@
 export type Seat = {
   id: string;
   label: string;
-  x: number;
-  y: number;
+  // Posición relativa dentro de la forma
 };
 
 export type Shape = {
   id: string;
-  type: "rect";
+  type: "rect"; // Por ahora solo rectángulos
   category: string;
   x: number;
   y: number;
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   seats: Seat[];
   selected?: boolean;
 };

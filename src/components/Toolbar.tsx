@@ -33,6 +33,7 @@ interface ToolbarProps {
   zoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
+  onZoomReset: () => void;
 }
 
 export default function Toolbar({
@@ -47,6 +48,7 @@ export default function Toolbar({
   zoom,
   onZoomIn,
   onZoomOut,
+  onZoomReset,
 }: ToolbarProps) {
   return (
     <div className="flex items-center gap-2 p-3 bg-gray-50 border-b border-gray-200 shadow-sm">
@@ -96,7 +98,7 @@ export default function Toolbar({
         <Button variant="outline" size="sm" onClick={onZoomOut} title="Alejar">
           <ZoomOut size={16} />
         </Button>
-        <Button variant="outline" size="sm" onClick={() => onZoomIn()} title="Resetear Zoom">
+        <Button variant="outline" size="sm" onClick={onZoomReset} title="Resetear Zoom">
           <span className="w-12 text-center">{Math.round(zoom * 100)}%</span>
         </Button>
         <Button variant="outline" size="sm" onClick={onZoomIn} title="Acercar">

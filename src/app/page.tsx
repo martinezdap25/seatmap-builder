@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import Toolbar from "@/components/Toolbar";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
@@ -21,6 +21,7 @@ function Editor() {
     setZoom,
   } = useSeatmapStore();
 
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const handleNewMap = () => {
     setShapes([]);
   };
@@ -133,13 +134,32 @@ function Editor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo, redo]);
 
-  const handleZoom = (direction: 'in' | 'out' | 'reset') => {
+  const handleZoom = useCallback((direction: 'in' | 'out' | 'reset') => {
     const currentZoom = canvasSettings.zoom;
     const ZOOM_STEP = 0.1;
     if (direction === 'in') setZoom(currentZoom + ZOOM_STEP);
     if (direction === 'out') setZoom(Math.max(0.1, currentZoom - ZOOM_STEP)); // No permitir zoom menor a 10%
     if (direction === 'reset') setZoom(1);
-  };
+  }, [canvasSettings.zoom, setZoom]);
+
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          handleZoom('in');
+        } else {
+          handleZoom('out');
+        }
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [handleZoom]);
 
   return (
     <main className="flex flex-col min-h-screen">
@@ -155,9 +175,10 @@ function Editor() {
         zoom={canvasSettings.zoom}
         onZoomIn={() => handleZoom('in')}
         onZoomOut={() => handleZoom('out')}
+        onZoomReset={() => handleZoom('reset')}
       />
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 flex items-center justify-center p-4 bg-gray-100">
+        <div ref={canvasContainerRef} className="flex-1 p-4 bg-gray-100 overflow-auto grid place-items-center">
           <Canvas
             shapes={shapes}
             settings={canvasSettings}

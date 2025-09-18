@@ -6,6 +6,7 @@ import React, { useCallback } from "react";
 
 interface CanvasSettings {
   backgroundColor: string;
+  zoom: number;
 }
 
 interface PropertiesPanelProps {

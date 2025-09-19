@@ -113,9 +113,11 @@ export function useInteraction({ getSnapLines, clearGuides }: InteractionParams)
       }
       if (handlePosition.includes("left")) {
         newWidth = startWidth - dx;
+        newX = startShapeX + dx;
       }
       if (handlePosition.includes("top")) {
         newHeight = startHeight - dy;
+        newY = startShapeY + dy;
       }
 
       // Mantener la proporción con Shift
@@ -130,23 +132,6 @@ export function useInteraction({ getSnapLines, clearGuides }: InteractionParams)
 
       if (newWidth < 20) newWidth = 20;
       if (newHeight < 20) newHeight = 20;
-
-      // Recalcular la posición para que el pivote opuesto no se mueva
-      const widthChange = newWidth - startWidth;
-      const heightChange = newHeight - startHeight;
-
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (handlePosition.includes("left")) {
-        offsetX = -widthChange;
-      }
-      if (handlePosition.includes("top")) {
-        offsetY = -heightChange;
-      }
-
-      newX = startShapeX + (offsetX * cos + offsetY * sin);
-      newY = startShapeY + (offsetY * cos - offsetX * sin);
 
       const updatedShape: Shape = { ...shape, x: newX, y: newY, width: newWidth, height: newHeight };
 

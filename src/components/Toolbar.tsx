@@ -4,6 +4,7 @@ import { Button } from "./ui/Button";
 import {
   Plus,
   Square,
+  Type,
   Download,
   Upload,
   Trash2,
@@ -24,6 +25,7 @@ import {
 interface ToolbarProps {
   onNewMap: () => void;
   onAddRect: () => void;
+  onAddText: () => void;
   onBatchLabel: () => void;
   onAlign: (
     alignment: "left" | "center-h" | "right" | "top" | "center-v" | "bottom"
@@ -43,6 +45,7 @@ interface ToolbarProps {
 export default function Toolbar({
   onNewMap,
   onAddRect,
+  onAddText,
   onBatchLabel,
   onAlign,
   canAlign,
@@ -64,6 +67,10 @@ export default function Toolbar({
 
       <Button variant="outline" size="sm" onClick={onAddRect}>
         <Square size={16} /> Agregar Rectángulo
+      </Button>
+
+      <Button variant="outline" size="sm" onClick={onAddText}>
+        <Type size={16} /> Agregar Texto
       </Button>
 
       <Button variant="outline" size="sm" onClick={onBatchLabel}>

@@ -18,7 +18,7 @@ export type Floor = {
 
 export type Shape = {
   id: string;
-  type: "rect" | "polygon";
+  type: "rect" | "polygon" | "text";
   floorId?: string; // Vincula la figura a un piso
   x: number;
   y: number;
@@ -29,10 +29,12 @@ export type Shape = {
   flippedX?: boolean;
   flippedY?: boolean;
   label?: string; // Para el texto dentro de la figura
+  fontSize?: number;
   textOptions?: TextOptions;
   seats: Seat[];
   selected?: boolean;
   editingVertices?: boolean; // Nuevo estado para el modo de edición
+  isEditing?: boolean; // para edición de texto
 };
 
 export type SeatMap = {

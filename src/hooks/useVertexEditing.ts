@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Shape } from "@/types/types";
 import React, { useState, useEffect } from "react";
 import { useVertexSnapping } from "./useVertexSnapping";
@@ -7,12 +8,10 @@ interface VertexEditingParams {
   allShapes: Shape[];
   onUpdate: (shape: Shape) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
-  canvasRef: React.RefObject<HTMLDivElement | null>;
-  getVertexSnap: (movingVertex: { x: number; y: number }, shapePosition: { x: number; y: number }, staticShapes: Shape[]) => { x: number; y: number };
-  clearVertexSnapGuides: () => void;
+  canvasRef: React.RefObject<any>;
 }
 
-export function useVertexEditing({ shape, allShapes, onUpdate, onDeleteVertex, canvasRef, getVertexSnap, clearVertexSnapGuides }: VertexEditingParams) {
+export function useVertexEditing({ shape, allShapes, onUpdate, onDeleteVertex, canvasRef }: VertexEditingParams) {
   const [selectedVertexIndex, setSelectedVertexIndex] = useState<number | null>(null);
 
   const handleVertexMouseDown = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
@@ -22,29 +21,18 @@ export function useVertexEditing({ shape, allShapes, onUpdate, onDeleteVertex, c
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!shape.vertices || !canvasRef.current) return;
 
-      const canvasRect = canvasRef.current.getBoundingClientRect();
-      const mouseX = moveEvent.clientX - canvasRect.left;
-      const mouseY = moveEvent.clientY - canvasRect.top;
-
-      let newVertexPos = {
-        x: mouseX - shape.x,
-        y: mouseY - shape.y,
-      };
-
-      // Aplicar snapping
-      const staticShapes = allShapes.filter(s => s.id !== shape.id || (s.vertices && s.vertices.length > 1));
-      const snappedPos = getVertexSnap(newVertexPos, { x: shape.x, y: shape.y }, staticShapes);
-      newVertexPos = snappedPos;
+      const stage = canvasRef.current;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
 
       const newVertices = [...shape.vertices];
-      newVertices[index] = newVertexPos;
+      newVertices[index] = { x: pointer.x - shape.x, y: pointer.y - shape.y };
 
       // Simplemente actualizamos los vértices. El componente se encargará de redibujar el SVG.
       onUpdate({ ...shape, vertices: newVertices });
     };
 
     const handleMouseUp = () => {
-      clearVertexSnapGuides();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };

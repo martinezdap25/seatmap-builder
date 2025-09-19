@@ -1,16 +1,6 @@
 import { Shape } from "@/types/types";
 import React from "react";
 
-export type DragInteractionHandler = (
-  e: React.MouseEvent<HTMLDivElement>,
-  shape: Shape,
-  allShapes: Shape[],
-  setShapes: (updater: (prev: Shape[]) => Shape[]) => void,
-  onUpdateDuringDrag: (shapes: Shape[]) => void,
-  getSnapLines: (movingShape: Shape, staticShapes: Shape[]) => { x: number | null; y: number | null },
-  clearGuides: () => void
-) => void;
-
 export type RotateInteractionHandler = (
     e: React.MouseEvent<HTMLDivElement>,
     shape: Shape,
@@ -24,62 +14,7 @@ export type ResizeInteractionHandler = (
   handlePosition: 'top' | 'right' | 'bottom' | 'left' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 ) => void;
 
-interface InteractionParams {
-  getSnapLines: (movingShape: Shape, staticShapes: Shape[]) => { x: number | null; y: number | null };
-  clearGuides: () => void;
-}
-
-export function useInteraction({ getSnapLines, clearGuides }: InteractionParams) {
-  const handleDrag: DragInteractionHandler = (e, draggedShape, allShapes, setShapes, onUpdateDuringDrag, getSnapLines, clearGuides) => {    
-    const shapesToDrag = draggedShape.selected && allShapes.some(s => s.id === draggedShape.id && s.selected)
-      ? allShapes.filter(s => s.selected)
-      : [draggedShape];
-    const startPositions = new Map(shapesToDrag.map(s => [s.id, { x: s.x, y: s.y }]));    
-
-    // Usamos una ref para guardar el estado final sin causar re-renders
-    let finalShapesState = allShapes;
-
-    const SNAP_GRID_SIZE = 10; // Snap to a 10x10 grid
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const dx = moveEvent.clientX - e.clientX;
-      const dy = moveEvent.clientY - e.clientY;
-
-      const currentDraggedShape = { ...draggedShape, x: (startPositions.get(draggedShape.id)?.x ?? 0) + dx, y: (startPositions.get(draggedShape.id)?.y ?? 0) + dy };
-      const snapOffset = getSnapLines(currentDraggedShape, allShapes.filter(s => !shapesToDrag.find(d => d.id === s.id)));
-
-      const finalDx = snapOffset.x !== null ? snapOffset.x - draggedShape.x : dx;
-      const finalDy = snapOffset.y !== null ? snapOffset.y - draggedShape.y : dy;
-
-      const newShapes = allShapes.map(s => {
-          const startPos = startPositions.get(s.id);
-          if (startPos) {
-            let movedX = startPos.x + finalDx;
-            let movedY = startPos.y + finalDy;
-
-            if (moveEvent.shiftKey) {
-              movedX = Math.round(movedX / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
-              movedY = Math.round(movedY / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
-            }
-            return { ...s, x: movedX, y: movedY };
-          }
-          return s;
-      });
-      finalShapesState = newShapes;
-      onUpdateDuringDrag(newShapes);
-    };
-
-    const handleMouseUp = () => {
-      clearGuides();
-      // Limpieza robusta: removemos los listeners de window.
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      setShapes(() => finalShapesState);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  };
+export function useInteraction() {
 
   const handleResize: ResizeInteractionHandler = (e, shape, onUpdate, handlePosition) => {
     e.stopPropagation();
@@ -185,5 +120,5 @@ export function useInteraction({ getSnapLines, clearGuides }: InteractionParams)
     window.addEventListener("mouseup", stopRotate);
   };
 
-  return { handleDrag, handleResize, handleRotate };
+  return { handleResize, handleRotate };
 }

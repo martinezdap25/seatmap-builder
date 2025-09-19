@@ -140,16 +140,18 @@ export default function PropertiesPanel({
     <div className="w-64 p-4 border-l border-gray-200 bg-gray-50">
       <h3 className="font-semibold text-gray-800 mb-4">Propiedades</h3>
       <div className="space-y-3">
-        <div>
-          <label className="text-sm text-gray-600">Piso</label>
-          <select
-            value={selectedShape.floorId || ''}
-            onChange={(e) => handleUpdate('floorId', e.target.value)}
-            className="w-full mt-1 p-1.5 border border-gray-300 rounded-md text-sm"
-          >
-            {floors.map(floor => <option key={floor.id} value={floor.id}>{floor.name}</option>)}
-          </select>
-        </div>
+        {selectedShape.type !== 'text' && (
+          <div>
+            <label className="text-sm text-gray-600">Piso</label>
+            <select
+              value={selectedShape.floorId || ''}
+              onChange={(e) => handleUpdate('floorId', e.target.value)}
+              className="w-full mt-1 p-1.5 border border-gray-300 rounded-md text-sm"
+            >
+              {floors.map(floor => <option key={floor.id} value={floor.id}>{floor.name}</option>)}
+            </select>
+          </div>
+        )}
         <div>
           <label className="text-sm text-gray-600">Etiqueta</label>
           <input

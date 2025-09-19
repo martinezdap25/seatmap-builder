@@ -6,8 +6,6 @@ import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
 import { Shape } from "@/types/types";
 import { useSmartGuides, Guide } from "@/hooks/useSmartGuides";
-import { useVertexSnapping } from "@/hooks/useVertexSnapping";
-import { useInteraction } from "@/hooks/useInteraction";
 import SmartGuidesOverlay from "@/components/SmartGuidesOverlay";
 import { useSeatmapStore } from "@/hooks/useSeatmapStore";
 import { SeatmapProvider } from "@/context/SeatmapContext";
@@ -29,8 +27,6 @@ function Editor() {
   } = useSeatmapStore();
 
   const { guides, getSnapLines, clearGuides } = useSmartGuides();
-  const { vertexSnapGuides, getVertexSnap, clearVertexSnapGuides } = useVertexSnapping();
-  const { handleDrag, handleResize, handleRotate } = useInteraction({ getSnapLines, clearGuides });
   const [isDragging, setIsDragging] = useReactState(false);
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +59,30 @@ function Editor() {
     ]);
   };
 
+  const handleAddText = () => {
+    setShapes((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type: 'text',
+        floorId: floors[0]?.id,
+        x: 150,
+        y: 150,
+        width: 200,
+        height: 50,
+        rotation: 0,
+        label: 'Texto editable',
+        fontSize: 20,
+        textOptions: {
+          align: 'left',
+          isBold: false,
+          color: '#333333',
+        },
+        seats: [],
+      },
+    ]);
+  };
+
   const handleBatchLabel = () =>
     alert("Aquí abriremos el modal de etiquetado rápido ✨");
   const handleExport = () => alert("Exportar JSON todavía no implementado 🚀");
@@ -84,7 +104,8 @@ function Editor() {
         if (s.id === updatedShape.id) {
           return updatedShape;
         }
-        return updatedShape.selected ? { ...s, selected: false } : s;
+        // si la nueva forma está seleccionada, deseleccionar las demás
+        return updatedShape.selected ? { ...s, selected: false, isEditing: false } : s;
       })
     );
   };
@@ -96,9 +117,15 @@ function Editor() {
           s.id === shapeId ? { ...s, selected: !s.selected } : s
         );
       } else {
+        const isAlreadySelected = prev.find(s => s.id === shapeId)?.selected;
+        // no deseleccionar si ya está seleccionada (para permitir doble clic)
+        if (isAlreadySelected && prev.filter(s => s.selected).length === 1) {
+          return prev;
+        }
         return prev.map((s) => ({
           ...s,
           selected: s.id === shapeId,
+          isEditing: false, // salir del modo de edición de texto
         }));
       }
     });
@@ -217,6 +244,7 @@ function Editor() {
       <Toolbar
         onNewMap={handleNewMap}
         onAddRect={handleAddRect}
+        onAddText={handleAddText}
         onBatchLabel={handleBatchLabel}
         onAlign={handleAlign}
         canAlign={selectedShapes.length > 0}
@@ -255,15 +283,7 @@ function Editor() {
               onDeleteShape={handleDelete}
               onDeleteVertex={handleDeleteVertex}
               floors={floors}
-              handleDrag={handleDrag}
-              handleResize={handleResize}
-              handleRotate={handleRotate}
-              getSnapLines={getSnapLines}
-              clearGuides={clearGuides}
-              getVertexSnap={getVertexSnap}
-              clearVertexSnapGuides={clearVertexSnapGuides}
             />
-            <SmartGuidesOverlay guides={isDragging ? guides : vertexSnapGuides} />
           </div>
         </div>
         <PropertiesPanel

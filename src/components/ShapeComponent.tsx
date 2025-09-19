@@ -158,7 +158,7 @@ export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, se
       <div
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
-        className={`relative w-full h-full transition-shadow duration-150 ${shape.selected ? 'outline outline-2 outline-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]' : ''}`}
+        className={`relative w-full h-full transition-shadow duration-150 ${shape.selected && !shape.editingVertices ? 'outline outline-2 outline-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]' : ''}`}
       >
         {/* Contenedor para el texto */}
         <div
@@ -177,7 +177,7 @@ export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, se
         </div>
 
         {shape.type === 'rect' && !shape.editingVertices && (
-          <div className="w-full h-full border border-gray-400" style={{ backgroundColor }} />
+          <div className="w-full h-full border-2" style={{ backgroundColor, borderColor: floorColor }} />
         )}
         {(shape.type === 'polygon' || shape.editingVertices) && shape.vertices && (
           <svg width="100%" height="100%" style={{ overflow: 'visible' }}>

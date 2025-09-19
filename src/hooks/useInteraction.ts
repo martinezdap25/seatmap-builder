@@ -30,11 +30,11 @@ interface InteractionParams {
 }
 
 export function useInteraction({ getSnapLines, clearGuides }: InteractionParams) {
-  const handleDrag: DragInteractionHandler = (e, draggedShape, allShapes, setShapes, onUpdateDuringDrag, getSnapLines, clearGuides) => {
+  const handleDrag: DragInteractionHandler = (e, draggedShape, allShapes, setShapes, onUpdateDuringDrag, getSnapLines, clearGuides) => {    
     const shapesToDrag = draggedShape.selected && allShapes.some(s => s.id === draggedShape.id && s.selected)
       ? allShapes.filter(s => s.selected)
       : [draggedShape];
-    const startPositions = new Map(shapesToDrag.map(s => [s.id, { x: s.x, y: s.y }]));
+    const startPositions = new Map(shapesToDrag.map(s => [s.id, { x: s.x, y: s.y }]));    
 
     // Usamos una ref para guardar el estado final sin causar re-renders
     let finalShapesState = allShapes;
@@ -45,7 +45,7 @@ export function useInteraction({ getSnapLines, clearGuides }: InteractionParams)
       const dx = moveEvent.clientX - e.clientX;
       const dy = moveEvent.clientY - e.clientY;
 
-      const currentDraggedShape = { ...draggedShape, x: startPositions.get(draggedShape.id)!.x + dx, y: startPositions.get(draggedShape.id)!.y + dy };
+      const currentDraggedShape = { ...draggedShape, x: (startPositions.get(draggedShape.id)?.x ?? 0) + dx, y: (startPositions.get(draggedShape.id)?.y ?? 0) + dy };
       const snapOffset = getSnapLines(currentDraggedShape, allShapes.filter(s => !shapesToDrag.find(d => d.id === s.id)));
 
       const finalDx = snapOffset.x !== null ? snapOffset.x - draggedShape.x : dx;
@@ -71,6 +71,7 @@ export function useInteraction({ getSnapLines, clearGuides }: InteractionParams)
 
     const handleMouseUp = () => {
       clearGuides();
+      // Limpieza robusta: removemos los listeners de window.
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
       setShapes(() => finalShapesState);

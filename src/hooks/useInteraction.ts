@@ -1,37 +1,58 @@
 import { Shape } from "@/types/types";
 import React from "react";
 
-type InteractionHandler = (
+type DragInteractionHandler = (
   e: React.MouseEvent<HTMLDivElement>,
   shape: Shape,
-  onUpdate: (shape: Shape) => void
+  allShapes: Shape[],
+  setShapes: (updater: (prev: Shape[]) => Shape[]) => void,
+  onUpdateDuringDrag: (shapes: Shape[]) => void
 ) => void;
 
+type RotateInteractionHandler = (
+    e: React.MouseEvent<HTMLDivElement>,
+    shape: Shape,
+    onUpdate: (shape: Shape) => void
+  ) => void;
+
 export function useInteraction() {
-  const handleDrag: InteractionHandler = (e, shape, onUpdate) => {
-    const dragStart = { x: e.clientX - shape.x, y: e.clientY - shape.y };
+  const handleDrag: DragInteractionHandler = (e, draggedShape, allShapes, setShapes, onUpdateDuringDrag) => {
+    const shapesToDrag = draggedShape.selected
+      ? allShapes.filter(s => s.selected)
+      : [draggedShape];
+    const startPositions = new Map(shapesToDrag.map(s => [s.id, { x: s.x, y: s.y }]));
+
+    // Usamos una ref para guardar el estado final sin causar re-renders
+    let finalShapesState = allShapes;
 
     const SNAP_GRID_SIZE = 10; // Snap to a 10x10 grid
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      let newX = moveEvent.clientX - dragStart.x;
-      let newY = moveEvent.clientY - dragStart.y;
+      const dx = moveEvent.clientX - e.clientX;
+      const dy = moveEvent.clientY - e.clientY;
 
-      if (moveEvent.shiftKey) {
-        newX = Math.round(newX / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
-        newY = Math.round(newY / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
-      }
+      const newShapes = allShapes.map(s => {
+          const startPos = startPositions.get(s.id);
+          if (startPos) {
+            let movedX = startPos.x + dx;
+            let movedY = startPos.y + dy;
 
-      onUpdate({
-        ...shape,
-        x: newX,
-        y: newY,
+            if (moveEvent.shiftKey) {
+              movedX = Math.round(movedX / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+              movedY = Math.round(movedY / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+            }
+            return { ...s, x: movedX, y: movedY };
+          }
+          return s;
       });
+      finalShapesState = newShapes;
+      onUpdateDuringDrag(newShapes);
     };
 
     const handleMouseUp = () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      setShapes(() => finalShapesState);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -104,7 +125,7 @@ export function useInteraction() {
     window.addEventListener("mouseup", stopResize);
   };
 
-  const handleRotate: InteractionHandler = (e, shape, onUpdate) => {
+  const handleRotate: RotateInteractionHandler = (e, shape, onUpdate) => {
     const shapeElement = e.currentTarget.parentElement?.parentElement?.parentElement;
     if (!shapeElement) return;
 

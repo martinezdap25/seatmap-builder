@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState as useReactState } from "react";
 import Toolbar from "@/components/Toolbar";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
@@ -14,6 +14,7 @@ function Editor() {
     floors,
     canvasSettings,
     setShapes,
+    updateShapesDuringDrag,
     undo,
     redo,
     setFloors,
@@ -225,7 +226,9 @@ function Editor() {
           <Canvas
             shapes={shapes}
             settings={canvasSettings}
+            setShapes={setShapes}
             onUpdateShape={handleUpdateShape}
+            onUpdateDuringDrag={updateShapesDuringDrag}
             onSelectShape={handleSelectShape}
             onDeleteShape={handleDelete}
             onDeleteVertex={handleDeleteVertex}

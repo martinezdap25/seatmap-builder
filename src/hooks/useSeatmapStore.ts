@@ -25,6 +25,13 @@ export const useSeatmapStore = () => {
     [state.shapes, dispatch]
   );
 
+  const updateShapesDuringDrag = useCallback(
+    (newShapes: Shape[]) => {
+      dispatch({ type: "UPDATE_SHAPES_DURING_DRAG", payload: newShapes });
+    },
+    [dispatch]
+  );
+
   const undo = useCallback(() => dispatch({ type: "UNDO" }), [dispatch]);
   const redo = useCallback(() => dispatch({ type: "REDO" }), [dispatch]);
 
@@ -63,6 +70,7 @@ export const useSeatmapStore = () => {
     canvasSettings: state.canvasSettings,
     // Acciones
     setShapes,
+    updateShapesDuringDrag,
     undo,
     redo,
     setFloors,

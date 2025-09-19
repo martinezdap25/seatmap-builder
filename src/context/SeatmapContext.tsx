@@ -38,7 +38,8 @@ export type Action =
   | { type: "SET_CANVAS_SETTINGS"; payload: { backgroundColor: string; zoom: number } }
   | { type: "SET_ZOOM"; payload: number }
   | { type: "COPY_SELECTION" }
-  | { type: "PASTE_FROM_CLIPBOARD" };
+  | { type: "PASTE_FROM_CLIPBOARD" }
+  | { type: "UPDATE_SHAPES_DURING_DRAG"; payload: Shape[] };
 
 // --- 2. Crear el Reducer ---
 
@@ -46,6 +47,7 @@ export const seatmapReducer = produce((draft: SeatmapState, action: Action) => {
   switch (action.type) {
     case "SET_SHAPES": {
       if (JSON.stringify(action.payload) !== JSON.stringify(draft.shapes)) {
+        // Solo guardamos en el historial en la acción final, no durante el arrastre
         const newHistory = draft.history.slice(0, draft.historyIndex + 1);
         newHistory.push(action.payload);
         draft.history = newHistory;
@@ -105,6 +107,11 @@ export const seatmapReducer = produce((draft: SeatmapState, action: Action) => {
         draft.history = newHistory;
         draft.historyIndex = newHistory.length - 1;
       }
+      break;
+    }
+    case "UPDATE_SHAPES_DURING_DRAG": {
+      // Actualiza el estado visual sin afectar el historial
+      draft.shapes = action.payload;
       break;
     }
   }

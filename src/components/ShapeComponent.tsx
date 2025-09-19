@@ -11,14 +11,17 @@ import { useVertexEditing } from "@/hooks/useVertexEditing"; // El nuevo hook
 interface ShapeComponentProps {
   shape: Shape;
   onUpdate: (shape: Shape) => void;
+  onUpdateDuringDrag: (shapes: Shape[]) => void;
+  setShapes: (updater: (prev: Shape[]) => Shape[]) => void; // Para el arrastre múltiple
   onSelect: (shapeId: string, isShiftPressed: boolean) => void;
   canvasRef: React.RefObject<HTMLDivElement | null>;
   onDelete: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
   floors: Floor[];
+  allShapes: Shape[]; // Necesitamos todas las formas para el arrastre múltiple
 }
 
-export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, onDelete, onDeleteVertex, floors }: ShapeComponentProps) {
+export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, setShapes, onSelect, canvasRef, onDelete, onDeleteVertex, floors, allShapes }: ShapeComponentProps) {
   const { handleDrag, handleResize, handleRotate } = useInteraction();
   const {
     selectedVertexIndex,
@@ -32,7 +35,6 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
 
-    const wasSelected = shape.selected;
     const initialX = e.clientX;
     const initialY = e.clientY;
     let hasDragged = false;
@@ -40,26 +42,29 @@ export default function ShapeComponent({ shape, onUpdate, onSelect, canvasRef, o
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const dx = Math.abs(moveEvent.clientX - initialX);
       const dy = Math.abs(moveEvent.clientY - initialY);
-      // Si el mouse se ha movido más de un umbral pequeño, consideramos que es un arrastre.
-      if (dx > 3 || dy > 3) {
+      if (!hasDragged && (dx > 3 || dy > 3)) {
         hasDragged = true;
+        // Iniciar el arrastre solo cuando el mouse se ha movido
+        handleDrag(e, shape, allShapes, setShapes, onUpdateDuringDrag);
       }
     };
 
     const handleMouseUp = (upEvent: MouseEvent) => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      // Si no se arrastró, es un clic. Seleccionamos la figura.
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
       if (!hasDragged) {
+        // Si no se arrastró, fue un clic. Ejecutamos la selección.
         onSelect(shape.id, upEvent.shiftKey);
+      } else {
+        // Si se arrastró, el estado final ya se guardó en el mouseup del hook.
+        // Pero necesitamos asegurarnos de que la selección sea correcta.
+        // Si la figura no estaba seleccionada, la seleccionamos ahora.
+        if (!shape.selected && !upEvent.shiftKey) onSelect(shape.id, false);
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    // Siempre iniciamos el arrastre, pero la selección se decide en el mouseup.
-    handleDrag(e, { ...shape, selected: wasSelected }, onUpdate);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
   };
 
   const handleDoubleClick = () => {

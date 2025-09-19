@@ -12,14 +12,16 @@ interface CanvasSettings {
 interface CanvasProps {
   shapes: Shape[];
   settings: CanvasSettings;
+  setShapes: (updater: (prev: Shape[]) => Shape[]) => void;
   onUpdateShape: (shape: Shape) => void;
+  onUpdateDuringDrag: (shapes: Shape[]) => void;
   onSelectShape: (shapeId: string, isShiftPressed: boolean) => void;
   onDeleteShape: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
   floors: Floor[];
 }
 
-export default function Canvas({ shapes, settings, onUpdateShape, onSelectShape, onDeleteShape, onDeleteVertex, floors }: CanvasProps) {
+export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onUpdateDuringDrag, onSelectShape, onDeleteShape, onDeleteVertex, floors }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -43,6 +45,9 @@ export default function Canvas({ shapes, settings, onUpdateShape, onSelectShape,
           key={shape.id}
           shape={shape}
           onUpdate={onUpdateShape}
+          onUpdateDuringDrag={onUpdateDuringDrag}
+          setShapes={setShapes}
+          allShapes={shapes}
           canvasRef={canvasRef}
           onSelect={onSelectShape}
           onDelete={onDeleteShape}

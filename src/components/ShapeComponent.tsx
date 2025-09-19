@@ -5,7 +5,7 @@ import { RotateCw } from "lucide-react";
 import VertexHandle from "./VertexHandle";
 import ResizeHandle from "./ResizeHandle";
 import React from "react";
-import { useInteraction } from "@/hooks/useInteraction";
+import { DragInteractionHandler, ResizeInteractionHandler, RotateInteractionHandler } from "@/hooks/useInteraction";
 import { useVertexEditing } from "@/hooks/useVertexEditing"; // El nuevo hook
 
 interface ShapeComponentProps {
@@ -19,10 +19,14 @@ interface ShapeComponentProps {
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
   floors: Floor[];
   allShapes: Shape[]; // Necesitamos todas las formas para el arrastre múltiple
+  handleDrag: DragInteractionHandler;
+  handleResize: ResizeInteractionHandler;
+  handleRotate: RotateInteractionHandler;
+  getSnapLines: (movingShape: Shape, staticShapes: Shape[]) => { x: number | null; y: number | null };
+  clearGuides: () => void;
 }
 
-export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, setShapes, onSelect, canvasRef, onDelete, onDeleteVertex, floors, allShapes }: ShapeComponentProps) {
-  const { handleDrag, handleResize, handleRotate } = useInteraction();
+export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, setShapes, onSelect, canvasRef, onDelete, onDeleteVertex, floors, allShapes, handleDrag, handleResize, handleRotate, getSnapLines, clearGuides }: ShapeComponentProps) {
   const {
     selectedVertexIndex,
     setSelectedVertexIndex,
@@ -45,7 +49,7 @@ export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, se
       if (!hasDragged && (dx > 3 || dy > 3)) {
         hasDragged = true;
         // Iniciar el arrastre solo cuando el mouse se ha movido
-        handleDrag(e, shape, allShapes, setShapes, onUpdateDuringDrag);
+        handleDrag(e, shape, allShapes, setShapes, onUpdateDuringDrag, getSnapLines, clearGuides);
       }
     };
 

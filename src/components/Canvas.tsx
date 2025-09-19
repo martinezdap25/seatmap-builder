@@ -1,5 +1,6 @@
 "use client";
 
+import { DragInteractionHandler, ResizeInteractionHandler, RotateInteractionHandler } from "@/hooks/useInteraction";
 import { Shape, Floor } from "@/types/types";
 import { useRef } from "react";
 import ShapeComponent from "./ShapeComponent";
@@ -19,9 +20,14 @@ interface CanvasProps {
   onDeleteShape: (shapeId: string) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
   floors: Floor[];
+  handleDrag: DragInteractionHandler;
+  handleResize: ResizeInteractionHandler;
+  handleRotate: RotateInteractionHandler;
+  getSnapLines: (movingShape: Shape, staticShapes: Shape[]) => { x: number | null; y: number | null };
+  clearGuides: () => void;
 }
 
-export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onUpdateDuringDrag, onSelectShape, onDeleteShape, onDeleteVertex, floors }: CanvasProps) {
+export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onUpdateDuringDrag, onSelectShape, onDeleteShape, onDeleteVertex, floors, handleDrag, handleResize, handleRotate, getSnapLines, clearGuides }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -53,6 +59,11 @@ export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onU
           onDelete={onDeleteShape}
           onDeleteVertex={onDeleteVertex}
           floors={floors}
+          handleDrag={handleDrag}
+          handleResize={handleResize}
+          handleRotate={handleRotate}
+          getSnapLines={getSnapLines}
+          clearGuides={clearGuides}
         />
       ))}
     </div>

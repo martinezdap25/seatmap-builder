@@ -5,6 +5,9 @@ import Toolbar from "@/components/Toolbar";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
 import { Shape } from "@/types/types";
+import { useSmartGuides, Guide } from "@/hooks/useSmartGuides";
+import { useInteraction } from "@/hooks/useInteraction";
+import SmartGuidesOverlay from "@/components/SmartGuidesOverlay";
 import { useSeatmapStore } from "@/hooks/useSeatmapStore";
 import { SeatmapProvider } from "@/context/SeatmapContext";
 
@@ -23,6 +26,10 @@ function Editor() {
     copySelection,
     pasteFromClipboard,
   } = useSeatmapStore();
+
+  const { guides, getSnapLines, clearGuides } = useSmartGuides();
+  const { handleDrag, handleResize, handleRotate } = useInteraction({ getSnapLines, clearGuides });
+  const [isDragging, setIsDragging] = useReactState(false);
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const handleNewMap = () => {
@@ -233,7 +240,13 @@ function Editor() {
             onDeleteShape={handleDelete}
             onDeleteVertex={handleDeleteVertex}
             floors={floors}
+            handleDrag={handleDrag}
+            handleResize={handleResize}
+            handleRotate={handleRotate}
+            getSnapLines={getSnapLines}
+            clearGuides={clearGuides}
           />
+          {isDragging && <SmartGuidesOverlay guides={guides} />}
         </div>
         <PropertiesPanel
           selectedShape={selectedShape}

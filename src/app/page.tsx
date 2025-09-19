@@ -231,26 +231,40 @@ function Editor() {
         onZoomReset={() => handleZoom('reset')}
       />
       <div className="flex flex-1 overflow-hidden">
-        <div ref={canvasContainerRef} className="flex-1 p-4 bg-gray-100 overflow-auto grid place-items-center">
-          <Canvas
-            shapes={shapes}
-            settings={canvasSettings}
-            setShapes={setShapes}
-            onUpdateShape={handleUpdateShape}
-            onUpdateDuringDrag={updateShapesDuringDrag}
-            onSelectShape={handleSelectShape}
-            onDeleteShape={handleDelete}
-            onDeleteVertex={handleDeleteVertex}
-            floors={floors}
-            handleDrag={handleDrag}
-            handleResize={handleResize}
-            handleRotate={handleRotate}
-            getSnapLines={getSnapLines}
-            clearGuides={clearGuides}
-            getVertexSnap={getVertexSnap}
-            clearVertexSnapGuides={clearVertexSnapGuides}
-          />
-          <SmartGuidesOverlay guides={isDragging ? guides : vertexSnapGuides} />
+        <div
+          ref={canvasContainerRef}
+          className="flex-1 p-4 bg-gray-100 overflow-auto grid place-items-center"
+          onDoubleClick={(e) => {
+            // Si el doble clic es en el fondo y no en una figura
+            if (e.target === e.currentTarget) {
+              setShapes(prev => prev.map(s => ({ ...s, selected: false, editingVertices: false })));
+            }
+          }}
+        >
+          <div
+            className="relative"
+            style={{ transform: `scale(${canvasSettings.zoom})` }}
+          >
+            <Canvas
+              shapes={shapes}
+              settings={canvasSettings}
+              setShapes={setShapes}
+              onUpdateShape={handleUpdateShape}
+              onUpdateDuringDrag={updateShapesDuringDrag}
+              onSelectShape={handleSelectShape}
+              onDeleteShape={handleDelete}
+              onDeleteVertex={handleDeleteVertex}
+              floors={floors}
+              handleDrag={handleDrag}
+              handleResize={handleResize}
+              handleRotate={handleRotate}
+              getSnapLines={getSnapLines}
+              clearGuides={clearGuides}
+              getVertexSnap={getVertexSnap}
+              clearVertexSnapGuides={clearVertexSnapGuides}
+            />
+            <SmartGuidesOverlay guides={isDragging ? guides : vertexSnapGuides} />
+          </div>
         </div>
         <PropertiesPanel
           selectedShape={selectedShape}

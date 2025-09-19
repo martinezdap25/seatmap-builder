@@ -35,16 +35,16 @@ export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onU
   return (
     <div
       className="relative w-[1000px] h-[700px] bg-transparent border border-gray-300 overflow-hidden"
-      // Deseleccionar al hacer clic en el fondo
-      onClick={(e) => {
+      // Deseleccionar todo al hacer clic o doble clic en el fondo
+      onDoubleClick={(e) => {
         if (e.target === e.currentTarget) {
-          const selected = shapes.find(s => s.selected);
-          if (selected) onUpdateShape({ ...selected, selected: false });
+          setShapes(prev =>
+            prev.map(s => ({ ...s, selected: false, editingVertices: false }))
+          );
         }
       }}
       style={{
         backgroundColor: settings.backgroundColor,
-        transform: `scale(${settings.zoom})`,
       }}
       ref={canvasRef}
     >

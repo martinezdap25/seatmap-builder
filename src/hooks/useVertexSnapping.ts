@@ -45,7 +45,7 @@ export function useVertexSnapping(config: SnapConfig = {}) {
         if (Math.abs(movingPoint.y - staticVertex.y) < threshold) {
           snapY = staticVertex.y;
           newGuides.push({
-            y: staticVertex.y,
+            y: snapY,
             x: Math.min(movingPoint.x, staticVertex.x),
             width: Math.abs(movingPoint.x - staticVertex.x),
           });
@@ -55,7 +55,7 @@ export function useVertexSnapping(config: SnapConfig = {}) {
         if (Math.abs(movingPoint.x - staticVertex.x) < threshold) {
           snapX = staticVertex.x;
           newGuides.push({
-            x: staticVertex.x,
+            x: snapX,
             y: Math.min(movingPoint.y, staticVertex.y),
             height: Math.abs(movingPoint.y - staticVertex.y),
           });

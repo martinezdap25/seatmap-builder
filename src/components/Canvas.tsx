@@ -25,9 +25,11 @@ interface CanvasProps {
   handleRotate: RotateInteractionHandler;
   getSnapLines: (movingShape: Shape, staticShapes: Shape[]) => { x: number | null; y: number | null };
   clearGuides: () => void;
+  getVertexSnap: (movingVertex: { x: number; y: number }, shapePosition: { x: number; y: number }, staticShapes: Shape[]) => { x: number; y: number };
+  clearVertexSnapGuides: () => void;
 }
 
-export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onUpdateDuringDrag, onSelectShape, onDeleteShape, onDeleteVertex, floors, handleDrag, handleResize, handleRotate, getSnapLines, clearGuides }: CanvasProps) {
+export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onUpdateDuringDrag, onSelectShape, onDeleteShape, onDeleteVertex, floors, handleDrag, handleResize, handleRotate, getSnapLines, clearGuides, getVertexSnap, clearVertexSnapGuides }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -64,6 +66,8 @@ export default function Canvas({ shapes, settings, setShapes, onUpdateShape, onU
           handleRotate={handleRotate}
           getSnapLines={getSnapLines}
           clearGuides={clearGuides}
+          getVertexSnap={getVertexSnap}
+          clearVertexSnapGuides={clearVertexSnapGuides}
         />
       ))}
     </div>

@@ -1,14 +1,18 @@
 import { Shape } from "@/types/types";
 import React, { useState, useEffect } from "react";
+import { useVertexSnapping } from "./useVertexSnapping";
 
 interface VertexEditingParams {
   shape: Shape;
+  allShapes: Shape[];
   onUpdate: (shape: Shape) => void;
   onDeleteVertex: (shapeId: string, vertexIndex: number) => void;
   canvasRef: React.RefObject<HTMLDivElement | null>;
+  getVertexSnap: (movingVertex: { x: number; y: number }, shapePosition: { x: number; y: number }, staticShapes: Shape[]) => { x: number; y: number };
+  clearVertexSnapGuides: () => void;
 }
 
-export function useVertexEditing({ shape, onUpdate, onDeleteVertex, canvasRef }: VertexEditingParams) {
+export function useVertexEditing({ shape, allShapes, onUpdate, onDeleteVertex, canvasRef, getVertexSnap, clearVertexSnapGuides }: VertexEditingParams) {
   const [selectedVertexIndex, setSelectedVertexIndex] = useState<number | null>(null);
 
   const handleVertexMouseDown = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
@@ -22,33 +26,25 @@ export function useVertexEditing({ shape, onUpdate, onDeleteVertex, canvasRef }:
       const mouseX = moveEvent.clientX - canvasRect.left;
       const mouseY = moveEvent.clientY - canvasRect.top;
 
-      const newVertexPos = {
+      let newVertexPos = {
         x: mouseX - shape.x,
         y: mouseY - shape.y,
       };
 
+      // Aplicar snapping
+      const staticShapes = allShapes.filter(s => s.id !== shape.id || (s.vertices && s.vertices.length > 1));
+      const snappedPos = getVertexSnap(newVertexPos, { x: shape.x, y: shape.y }, staticShapes);
+      newVertexPos = snappedPos;
+
       const newVertices = [...shape.vertices];
       newVertices[index] = newVertexPos;
 
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      newVertices.forEach(v => {
-        minX = Math.min(minX, v.x);
-        minY = Math.min(minY, v.y);
-        maxX = Math.max(maxX, v.x);
-        maxY = Math.max(maxY, v.y);
-      });
-
-      const newShapeX = shape.x + minX;
-      const newShapeY = shape.y + minY;
-      const newWidth = maxX - minX;
-      const newHeight = maxY - minY;
-
-      const updatedVertices = newVertices.map(v => ({ x: v.x - minX, y: v.y - minY }));
-
-      onUpdate({ ...shape, x: newShapeX, y: newShapeY, width: newWidth, height: newHeight, vertices: updatedVertices });
+      // Simplemente actualizamos los vértices. El componente se encargará de redibujar el SVG.
+      onUpdate({ ...shape, vertices: newVertices });
     };
 
     const handleMouseUp = () => {
+      clearVertexSnapGuides();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };

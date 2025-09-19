@@ -24,16 +24,18 @@ interface ShapeComponentProps {
   handleRotate: RotateInteractionHandler;
   getSnapLines: (movingShape: Shape, staticShapes: Shape[]) => { x: number | null; y: number | null };
   clearGuides: () => void;
+  getVertexSnap: (movingVertex: { x: number; y: number }, shapePosition: { x: number; y: number }, staticShapes: Shape[]) => { x: number; y: number };
+  clearVertexSnapGuides: () => void;
 }
 
-export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, setShapes, onSelect, canvasRef, onDelete, onDeleteVertex, floors, allShapes, handleDrag, handleResize, handleRotate, getSnapLines, clearGuides }: ShapeComponentProps) {
+export default function ShapeComponent({ shape, onUpdate, onUpdateDuringDrag, setShapes, onSelect, canvasRef, onDelete, onDeleteVertex, floors, allShapes, handleDrag, handleResize, handleRotate, getSnapLines, clearGuides, getVertexSnap, clearVertexSnapGuides }: ShapeComponentProps) {
   const {
     selectedVertexIndex,
     setSelectedVertexIndex,
     handleVertexMouseDown,
     handleSegmentClick,
   } = useVertexEditing({
-    shape, onUpdate, onDeleteVertex, canvasRef
+    shape, allShapes, onUpdate, onDeleteVertex, canvasRef, getVertexSnap, clearVertexSnapGuides
   });
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {

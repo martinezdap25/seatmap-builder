@@ -6,6 +6,7 @@ import PropertiesPanel from "@/components/PropertiesPanel";
 import Canvas from "@/components/Canvas";
 import { Shape } from "@/types/types";
 import { useSmartGuides, Guide } from "@/hooks/useSmartGuides";
+import { useVertexSnapping } from "@/hooks/useVertexSnapping";
 import { useInteraction } from "@/hooks/useInteraction";
 import SmartGuidesOverlay from "@/components/SmartGuidesOverlay";
 import { useSeatmapStore } from "@/hooks/useSeatmapStore";
@@ -28,6 +29,7 @@ function Editor() {
   } = useSeatmapStore();
 
   const { guides, getSnapLines, clearGuides } = useSmartGuides();
+  const { vertexSnapGuides, getVertexSnap, clearVertexSnapGuides } = useVertexSnapping();
   const { handleDrag, handleResize, handleRotate } = useInteraction({ getSnapLines, clearGuides });
   const [isDragging, setIsDragging] = useReactState(false);
 
@@ -245,8 +247,10 @@ function Editor() {
             handleRotate={handleRotate}
             getSnapLines={getSnapLines}
             clearGuides={clearGuides}
+            getVertexSnap={getVertexSnap}
+            clearVertexSnapGuides={clearVertexSnapGuides}
           />
-          {isDragging && <SmartGuidesOverlay guides={guides} />}
+          <SmartGuidesOverlay guides={isDragging ? guides : vertexSnapGuides} />
         </div>
         <PropertiesPanel
           selectedShape={selectedShape}
